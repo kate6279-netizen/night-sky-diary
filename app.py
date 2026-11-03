@@ -417,8 +417,6 @@ def page_home():
     q, by = quotes.pick(EMO, probs, day)
     sub = "당신의 감정이 모여 오늘도 특별한 궤적을 만들었어요." if old else "오늘의 감정을 기록하고, 나만의 궤도를 이어가 보세요."
     components.html(sky.hero_html(f"{day.year}년 {day.month}월 {day.day}일 {WEEK[day.weekday()]}요일", q, by, sub, probs, user=nick), height=320)
-    if not old:
-        st.markdown('<div style="padding:12px 18px;margin:0 0 16px;border:1px solid rgba(165,155,255,.24);border-radius:14px;background:linear-gradient(110deg,rgba(139,123,255,.13),rgba(91,132,240,.08));color:#dce1ff;font-size:13px">✦ 오늘의 별은 아직 비어 있어요. 아래에서 <b>10초 기록</b> 또는 <b>일기 쓰기</b>를 선택해 첫 별을 만들어 보세요.</div>', unsafe_allow_html=True)
 
     # 타임캡슐: 지난 나의 편지가 도착했으면 알려 주기
     letters = capsule_letters(list(entries.values()), today)
@@ -434,10 +432,11 @@ def page_home():
 
     c1, c2 = st.columns([1, 1.25], gap="medium")
     with c1:
-        with st.container(border=True, height=350):
+        with st.container(border=True):
             st.markdown('<div class="ctitle">오늘의 감정 비율</div>', unsafe_allow_html=True)
-            components.html(sky.donut_html(probs), height=240)
-        render_home_side(probs, EMO, COL, PAGES)
+            if probs:
+                components.html(sky.donut_html(probs), height=220)
+            render_home_side(probs, EMO, COL, PAGES)
     with c2:
         with st.container(border=True):
             t, m = st.columns([1, 1.3], vertical_alignment="center")
