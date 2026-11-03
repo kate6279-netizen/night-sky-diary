@@ -15,7 +15,7 @@ import db
 import quotes
 import sky
 from emotion_calendar import page_calendar
-from emotion_gallery import page_gallery
+from emotion_gallery import page_gallery, sample_entries as demo_universe_entries
 from emotion_home import render_home_extras
 from emotion_guides import render_home_side, render_explainer
 from model import EMO, predict
@@ -542,6 +542,12 @@ def page_universe():
                 month_options(entries), pill=range_label)
     render_explainer("universe")
     cur = [e for e in entries if e["date"].startswith(ym)]
+    if len(cur) < 2:
+        st.info("감정이 비슷했던 날을 비교하려면 서로 다른 날짜의 기록이 2일 이상 필요해요.")
+        if st.toggle("✦ 예시 감정 별지도로 사용법 체험하기", key="universe_demo"):
+            y, m = map(int, ym.split("-"))
+            cur = demo_universe_entries(y, m)
+            st.caption("현재는 체험용 가상 기록을 보여드리고 있어요. 실제 기록이나 데이터베이스에는 저장되지 않아요.")
     components.html(sky.universe_html(cur, height=640), height=650)
 
 
@@ -685,9 +691,19 @@ def page_capsule():
 
 
 # ---------- 화면 목록 (기본 메뉴는 숨기고 사이드바에 직접 그려요) ----------
+def page_calendar_route():
+    """선택한 날짜의 일기로 이동합니다. 저장된 데이터를 직접 바꾸지는 않아요."""
+    def open_for_editing(chosen_date):
+        st.session_state["day"] = chosen_date
+        st.session_state["draft_date"] = None
+        st.session_state["rec_mode"] = "일기 쓰기"
+        st.switch_page(PAGES["home"])
+    page_calendar(on_edit=open_for_editing)
+
+
 PAGES = {
     "home": st.Page(page_home, title="홈", icon=":material/home:", url_path="home", default=True),
-    "calendar": st.Page(page_calendar, title="감정 달력", icon=":material/calendar_month:", url_path="calendar"),
+    "calendar": st.Page(page_calendar_route, title="감정 달력", icon=":material/calendar_month:", url_path="calendar"),
     "gallery": st.Page(page_gallery, title="별자리 갤러리", icon=":material/auto_awesome:", url_path="gallery"),
     "solar": st.Page(page_solar, title="감정 태양계", icon=":material/trip_origin:", url_path="solar"),
     "universe": st.Page(page_universe, title="감정 유니버스", icon=":material/hub:", url_path="universe"),
