@@ -46,9 +46,12 @@ def _color_styles(year: int, month: int, by_date: dict[str, dict], selected: str
     """선택된 달의 버튼만 꾸밉니다."""
     css = [
         "<style>",
+        ".emo-calendar-weekdays{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;text-align:center;margin:5px 0 12px}.emo-calendar-weekdays span{font-size:12px;color:#b2b8df;font-weight:700}",
+        "div[data-testid='stHorizontalBlock']:has([class*='st-key-emo_cal_']){flex-wrap:nowrap!important;gap:6px!important;align-items:stretch!important}",
+        "div[data-testid='stHorizontalBlock']:has([class*='st-key-emo_cal_']) [data-testid='stColumn']{flex:1 1 0!important;width:0!important;min-width:0!important}",
         "[class*='st-key-emo_cal_'] button{min-height:67px!important;border-radius:13px!important;font-size:15px!important;font-weight:700!important;transition:transform .15s,border-color .15s!important;}",
         "[class*='st-key-emo_cal_'] button:enabled:hover{transform:translateY(-2px)!important;}",
-        "[class*='st-key-emo_cal_'] button:disabled{opacity:.55!important;background:#131730!important;color:#747ca6!important;}",
+        "[class*='st-key-emo_cal_'] button:disabled{opacity:1!important;background:#15192f!important;color:#9da7cd!important;border:1px solid rgba(145,155,225,.2)!important;}",
         "@media(max-width:680px){[class*='st-key-emo_cal_'] button{min-height:43px!important;padding:4px 1px!important;font-size:11px!important;border-radius:9px!important;}}",
     ]
     for date, entry in by_date.items():
@@ -104,8 +107,7 @@ def page_calendar(on_edit=None) -> None:
         selected = max((str(e["date"]) for e in month_rows), default="")
     st.markdown(_color_styles(year, month, by_date, selected), unsafe_allow_html=True)
 
-    for col, label in zip(st.columns(7, gap="small"), _WEEKDAYS):
-        col.markdown(f'<div style="text-align:center;font-size:12px;color:#b2b8df;font-weight:700;padding:4px 0">{label}</div>', unsafe_allow_html=True)
+    st.markdown('<div class="emo-calendar-weekdays">' + ''.join(f'<span>{day}</span>' for day in _WEEKDAYS) + '</div>', unsafe_allow_html=True)
 
     for week in calendar.monthcalendar(year, month):
         cols = st.columns(7, gap="small")
