@@ -417,6 +417,13 @@ def page_home():
     q, by = quotes.pick(EMO, probs, day)
     sub = "당신의 감정이 모여 오늘도 특별한 궤적을 만들었어요." if old else "오늘의 감정을 기록하고, 나만의 궤도를 이어가 보세요."
     components.html(sky.hero_html(f"{day.year}년 {day.month}월 {day.day}일 {WEEK[day.weekday()]}요일", q, by, sub, probs, user=nick), height=320)
+    if day != today:
+        st.caption(f"✎ {day.year}년 {day.month}월 {day.day}일의 기록을 편집 중이에요.")
+        if st.button("오늘 기록으로 돌아가기", key="return_to_today"):
+            st.session_state.pop("day", None)
+            st.session_state["draft_date"] = None
+            st.session_state["rec_mode"] = "10초 기록"
+            st.rerun()
 
     # 타임캡슐: 지난 나의 편지가 도착했으면 알려 주기
     letters = capsule_letters(list(entries.values()), today)
@@ -469,7 +476,7 @@ def page_home():
                                     placeholder="오늘 있었던 일과 그때의 마음을 편하게 적어 보세요.")
                 l, r = st.columns([1, 1], vertical_alignment="center")
                 with l.container(key="more"):
-                    with st.popover("⋯", help="다른 날짜, 감정 수정, 지우기"):
+                    with st.popover("기록 관리 ⋯", help="날짜 변경, 감정 수정, 기록 삭제"):
                         new_day = st.date_input("날짜", value=day, max_value=today)
                         if new_day != day:
                             st.session_state["day"] = new_day; st.rerun()
@@ -481,10 +488,19 @@ def page_home():
                             if old:
                                 db.save_entry(nick, key, old["text"], old["probs"], new_fix, kind=old.get("kind", "diary"))
                             st.rerun()
-                        if old and st.button("이 날 기록 지우기"):
-                            db.delete_entry(nick, key)
-                            st.session_state["draft_date"] = None
-                            st.rerun()
+                        if old:
+                            st.divider()
+                            st.caption("기록 삭제는 되돌릴 수 없어요.")
+                            with st.form(key=f"delete_form_{key}", clear_on_submit=True):
+                                confirm_delete = st.checkbox("이 날짜의 기록을 삭제하겠습니다")
+                                if st.form_submit_button("기록 삭제"):
+                                    if confirm_delete:
+                                        db.delete_entry(nick, key)
+                                        st.session_state["draft_date"] = None
+                                        st.toast("선택한 날짜의 기록이 삭제됐어요.", icon="🗑️")
+                                        st.rerun()
+                                    else:
+                                        st.warning("삭제 확인란을 선택해 주세요.")
                 with r.container(key="save"):
                     if st.button("저장하기", type="primary"):
                         if not text.strip():
@@ -561,9 +577,13 @@ def page_archive():
     render_explainer("archive")
     y, m = int(ym[:4]), int(ym[5:])
     cur = [e for e in entries if e["date"].startswith(ym)]
-    components.html(sky.report_html(cur, y, m, part="top"), height=290)
     if not cur:
+        st.info("이 달에는 아직 감정 기록이 없어요. 홈에서 첫 기록을 남기면 여기서 감정 변화를 살펴볼 수 있어요.")
+        st.page_link(PAGES["home"], label="✦ 오늘의 감정 기록하러 가기")
         return
+    if len(cur) < 3:
+        st.caption(f"이 달의 기록은 {len(cur)}일이에요. 지금은 기록된 감정을 확인하고, 기록이 쌓이면 변화를 비교해 보세요.")
+    components.html(sky.report_html(cur, y, m, part="top"), height=290)
     l, r = st.columns([2, 1], gap="medium")
     with l:
         components.html(sky.report_html(cur, y, m, part="bottom"), height=315)
