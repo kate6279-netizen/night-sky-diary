@@ -15,6 +15,7 @@ import db
 import quotes
 import sky
 from emotion_calendar import page_calendar
+from emotion_gallery import page_gallery
 from model import EMO, predict
 from samples import SAMPLES
 
@@ -230,6 +231,22 @@ header[data-testid="stHeader"] button, header[data-testid="stHeader"] a { pointe
 .st-key-intensity_choice [data-testid="stButtonGroup"] { display:block !important; width:100% !important; max-width:100% !important; }
 .st-key-intensity_choice [data-testid="stButtonGroup"] div:has(> button[data-variant="segmented_control"]) { display:grid !important; grid-template-columns:repeat(3,minmax(0,1fr)) !important; column-gap:10px !important; row-gap:10px !important; align-items:stretch !important; width:100% !important; min-width:0 !important; max-width:100% !important; overflow:visible !important; }
 .st-key-intensity_choice [data-testid="stButtonGroup"] button[data-variant="segmented_control"] { box-sizing:border-box !important; display:flex !important; width:100% !important; min-width:0 !important; max-width:none !important; flex:none !important; margin:0 !important; }
+/* FRONTEND_HOME_V3: 기록 UX·연결·반응형 */
+.st-key-home_next{margin-top:16px!important;padding:20px!important;border-radius:18px!important;border:1px solid rgba(161,152,255,.26)!important;background:linear-gradient(140deg,rgba(45,46,102,.35),rgba(14,20,46,.45))!important;}
+.st-key-home_next [data-testid="stPageLink"] a,.st-key-home_next a[data-testid="stPageLink-NavLink"]{display:flex!important;align-items:center!important;justify-content:center!important;min-height:51px!important;text-align:center!important;padding:12px!important;border:1px solid rgba(163,155,255,.4)!important;border-radius:13px!important;background:rgba(125,106,230,.17)!important;color:#f1edff!important;font-weight:700!important;}
+.st-key-home_next a:hover{background:rgba(137,121,255,.25)!important;}
+.st-key-daily_message{margin-top:16px!important;padding:20px!important;border-radius:18px!important;border:1px solid rgba(255,207,106,.28)!important;background:linear-gradient(140deg,rgba(94,62,121,.25),rgba(15,19,45,.7))!important;}
+.st-key-daily_message .stButton button{border-color:rgba(255,207,106,.38)!important;border-radius:13px!important;min-height:44px!important;color:#ffe4a8!important;}
+.home-section-head{margin-bottom:14px;line-height:1.6;}
+.home-section-head span{display:block;color:#b7a5ff;font-size:10px;font-weight:800;letter-spacing:.14em;}
+.home-section-head b{display:block;color:#f3f0ff;font-size:17px;font-weight:800;margin:5px 0 1px;}
+.home-section-head p{color:#aab3d9;font-size:12.5px;margin:0;}
+.daily-note{margin-top:10px;padding:16px 18px;border-radius:14px;background:radial-gradient(circle at 90% 5%,rgba(255,208,113,.14),transparent 65%),rgba(28,34,70,.75);border:1px solid rgba(255,208,113,.3);font-size:14px;font-weight:700;color:#fff0cf;line-height:1.9;}
+.milestones{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:18px 0 8px;}
+.milestones b{font-size:13px;color:#c7c9ed;margin-right:6px;}
+.streak-milestone{font-size:12px;padding:8px 12px;border-radius:99px;border:1px solid rgba(155,164,220,.25);background:rgba(30,34,65,.7);color:#a9afcf;}
+.streak-milestone.unlocked{border-color:rgba(255,207,106,.66);background:rgba(255,207,106,.14);color:#ffe0a1;box-shadow:0 0 14px rgba(255,207,106,.1);}
+@media(max-width:760px){.block-container{padding-left:1rem!important;padding-right:1rem!important;padding-top:.8rem!important;}.home-section-head b{font-size:15px;}.st-key-home_next,.st-key-daily_message{padding:14px!important;}.trail i{width:16px;height:16px;}.trail b{font-size:10px;}.streak{float:none;display:block;margin-top:6px;}}
 </style>""", unsafe_allow_html=True)
 
 LOGO = ('<svg viewBox="0 0 40 40" fill="none"><path d="M20 3l2.6 13.4L36 20l-13.4 2.6L20 37l-2.6-14.4L4 20l13.4-3.6z" fill="url(#lg)" opacity=".95"/>'
@@ -435,11 +452,11 @@ def page_home():
             st.markdown('<div class="ctitle">오늘의 감정 비율</div>', unsafe_allow_html=True)
             components.html(sky.donut_html(probs), height=240)
     with c2:
-        with st.container(border=True, height=350):
+        with st.container(border=True):
             t, m = st.columns([1, 1.3], vertical_alignment="center")
             t.markdown('<div class="ctitle" style="margin:0">오늘의 기록</div>', unsafe_allow_html=True)
             with m.container(key="mode"):
-                mode = st.segmented_control("기록 방식", ["일기 쓰기", "10초 기록"], default="일기 쓰기",
+                mode = st.segmented_control("기록 방식", ["일기 쓰기", "10초 기록"], default="10초 기록",
                                             key="rec_mode", label_visibility="collapsed")
             if mode == "10초 기록":
                 with st.container(key="quick"):                    
@@ -512,6 +529,43 @@ def page_home():
                  '<span class="streak">✦ 오늘의 별이 떴어요</span>')
         st.markdown(f'<div class="ctitle">오늘의 감정 기록{badge}</div><div class="trail">' + "".join(cells) + "</div>", unsafe_allow_html=True)
         st.page_link(PAGES["calendar"], label="한 달의 감정 달력 보기 →")
+
+    # 오늘의 기록 다음 행동: 달력과 월간 작품으로 자연스럽게 연결
+    with st.container(key="home_next"):
+        st.markdown('<div class="home-section-head"><span>✦ MY EMOTION UNIVERSE</span><b>오늘의 별이 모여 나만의 우주가 돼요.</b><p>기록을 확인하거나 한 달의 작품을 감상해 보세요.</p></div>', unsafe_allow_html=True)
+        go_calendar, go_gallery = st.columns(2, gap="medium")
+        with go_calendar:
+            st.page_link(PAGES["calendar"], label="🗓 감정 달력 보러 가기")
+        with go_gallery:
+            st.page_link(PAGES["gallery"], label="✦ 월간 별자리 갤러리")
+
+    # 매일 하나의 짧은 메시지: 외부 데이터/AI 호출 없이 날짜로 결정
+    with st.container(key="daily_message"):
+        st.markdown('<div class="home-section-head"><span>✦ TODAY&#39;S LITTLE STAR</span><b>오늘의 별 메시지</b><p>오늘 마음에 남길 짧은 한마디를 열어 보세요.</p></div>', unsafe_allow_html=True)
+        if st.button("오늘의 메시지 열어보기 ✨", key="open_daily_message"):
+            st.session_state["opened_daily_message"] = today.isoformat()
+        if st.session_state.get("opened_daily_message") == today.isoformat():
+            notes = (
+                "오늘 남긴 작은 기록이 내일의 나에게 큰 별이 될 수 있어요.",
+                "마음의 색은 매일 달라도 괜찮아요. 모두 나의 별이에요.",
+                "잠깐 멈춰서 오늘의 마음을 들여다본 것만으로도 충분해요.",
+                "좋았던 순간 하나를 기억하면 오늘의 하늘이 조금 더 밝아져요.",
+                "어제와 다른 오늘도 하나의 소중한 궤적이에요.",
+                "가장 작게 빛나는 별도 나만의 우주를 완성해요.",
+                "새로운 하루에는 새로운 색의 별이 떠오를 수 있어요.",
+            )
+            note = notes[today.toordinal() % len(notes)]
+            st.markdown(f'<div class="daily-note">✦ {html.escape(note)}</div>', unsafe_allow_html=True)
+        st.caption("하루에 한 문장씩 바뀌는 응원 메시지예요. AI 분석 결과는 아닙니다.")
+
+    # 연속 기록: 기존 계산 결과를 디자인 배지로 표시
+    n = streak_days(set(entries), today)
+    milestones = (3, 7, 30)
+    chips = "".join(
+        f'<span class="streak-milestone {"unlocked" if n >= goal else ""}">✦ {goal}일 {"달성" if n >= goal else "도전 중"}</span>'
+        for goal in milestones
+    )
+    st.markdown('<div class="milestones"><b>✧ 나의 기록 배지</b>' + chips + '</div>', unsafe_allow_html=True)
 
 
 # ---------- 화면 2: 감정 태양계 ----------
@@ -679,6 +733,7 @@ def page_capsule():
 PAGES = {
     "home": st.Page(page_home, title="홈", icon=":material/home:", url_path="home", default=True),
     "calendar": st.Page(page_calendar, title="감정 달력", icon=":material/calendar_month:", url_path="calendar"),
+    "gallery": st.Page(page_gallery, title="별자리 갤러리", icon=":material/auto_awesome:", url_path="gallery"),
     "solar": st.Page(page_solar, title="감정 태양계", icon=":material/trip_origin:", url_path="solar"),
     "universe": st.Page(page_universe, title="감정 유니버스", icon=":material/hub:", url_path="universe"),
     "archive": st.Page(page_archive, title="우주의 기록", icon=":material/article:", url_path="archive"),
