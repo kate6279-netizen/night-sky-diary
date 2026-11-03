@@ -1,31 +1,44 @@
-import datetime as dt
-from collections import Counter
+"""홈 화면의 간결한 기능 탐색 카드.
+
+이번 화면에서는 중복 통계, 미완성 포춘쿠키/메시지, 배지 UI를 표시하지 않습니다.
+"""
 import html
 import streamlit as st
 
+
+_HOME_CSS = '''<style>
+.et-nav-head{margin:20px 0 13px}
+.et-nav-head b{display:block;font-size:16px;font-weight:800;color:#f3f0ff}
+.et-nav-head p{color:#9ba8d1;font-size:12px;margin:5px 0 0}
+.et-nav-desc{color:#adb7da;font-size:12px;line-height:1.75;min-height:41px;margin:4px 0 10px}
+.st-key-et_explore [data-testid="stVerticalBlockBorderWrapper"]{background:linear-gradient(130deg,rgba(32,36,80,.68),rgba(11,15,35,.88));border:1px solid rgba(163,155,255,.23)!important;border-radius:15px!important}
+.st-key-et_explore [data-testid="stPageLink"] a{background:rgba(125,112,238,.12);border-radius:10px;padding:9px 10px!important;border:1px solid rgba(173,158,255,.24);min-height:42px}
+.st-key-et_explore [data-testid="stPageLink"] a:hover{background:rgba(139,123,255,.22)}
+</style>'''
+
+
 def render_home_extras(entries, today, top_emotion, streak_days, PAGES):
-    st.markdown('<style>.weekly-pulse{display:flex;flex-wrap:wrap;gap:10px;margin:16px 0}.weekly-pulse span{flex:1;min-width:160px;border:1px solid rgba(155,146,252,.32);padding:14px 17px;border-radius:14px;background:rgba(31,36,78,.64);color:#abb8dd;font-size:12px}.weekly-pulse b{display:block;color:#fff;font-size:19px;margin-top:6px}.journey-title{font-size:16px;font-weight:800;color:#eeeaff;margin:19px 0 10px}.streak-badges{display:flex;gap:10px;flex-wrap:wrap;margin:15px 0 12px}.streak-badges span{border:1px solid #394269;border-radius:99px;padding:8px 12px;color:#a5afce;font-size:12px}.streak-badges span.earned{border-color:#ffcf6a;color:#ffcf6a;background:rgba(255,207,106,.1)}</style>', unsafe_allow_html=True)
-    last_7_days = [entries.get((today - dt.timedelta(days=i)).isoformat()) for i in range(7)]
-    last_7_days = [entry for entry in last_7_days if entry]
-    top_week = Counter(top_emotion(entry) for entry in last_7_days).most_common(1)
-    top_week = top_week[0][0] if top_week else '아직 없어요'
-    st.markdown(f'<div class="weekly-pulse"><span>최근 7일 기록 <b>{len(last_7_days)} / 7일</b></span><span>이번 주 대표 감정 <b>{html.escape(top_week)}</b></span><span>연속 기록 <b>{streak_days(set(entries), today)}일</b></span></div>', unsafe_allow_html=True)
-    st.markdown('<div class="journey-title">✦ 감정이 쌓여 나의 우주가 돼요</div>', unsafe_allow_html=True)
-    a, b = st.columns(2)
-    with a:
-        st.page_link(PAGES['calendar'], label='🗓 감정 달력 보러 가기')
-    with b:
-        st.page_link(PAGES['gallery'], label='✦ 한 달의 별자리 갤러리')
-    st.markdown('<div class="journey-title">✧ 오늘의 작은 메시지</div>', unsafe_allow_html=True)
-    messages = ('오늘의 작은 기록이 내일의 별이 돼요.', '마음의 색은 매일 달라도 괜찮아요.', '오늘도 나의 우주에 새로운 빛이 생겨요.', '별 하나의 시작은 짧은 기록이에요.', '오늘의 기분이 무엇이든 소중한 나의 일부예요.', '한 번의 기록이 내 마음을 이해하는 단서가 돼요.', '나만의 속도로 기록을 쌓아가도 좋아요.')
-    if st.button('오늘의 별 메시지 열기 ✨', key='home_daily_message'):
-        st.session_state['home_message_open'] = today.isoformat()
-    if st.session_state.get('home_message_open') == today.isoformat():
-        st.info(messages[today.toordinal() % len(messages)])
-    streak = streak_days(set(entries), today)
-    badges = []
-    for goal in (3, 7, 30):
-        status = 'earned' if streak >= goal else ''
-        label = '달성' if streak >= goal else '도전'
-        badges.append(f'<span class="{status}">✦ {goal}일 {label}</span>')
-    st.markdown('<div class="streak-badges">' + ''.join(badges) + '</div>', unsafe_allow_html=True)
+    """네 가지 탐색 경로만 표시해 사용자 선택을 돕습니다."""
+    st.markdown(_HOME_CSS, unsafe_allow_html=True)
+    st.markdown(
+        '<div class="et-nav-head"><b>✦ 나의 우주 둘러보기</b>'
+        '<p>오늘의 기록을 네 가지 방법으로 다시 만날 수 있어요.</p></div>',
+        unsafe_allow_html=True,
+    )
+    choices = (
+        ('calendar', '감정 달력', '어느 날 어떤 감정을 느꼈는지 날짜별로 확인'),
+        ('solar', '감정 태양계', '이번 달 가장 많았던 감정을 행성으로 비교'),
+        ('universe', '감정 유니버스', '마음이 비슷했던 날짜와 기록을 찾아보기'),
+        ('gallery', '별자리 갤러리', '한 달의 별을 하나의 작품으로 감상'),
+    )
+    with st.container(key='et_explore'):
+        # 아래 가로 열은 이 컨테이너 안에 있어야 스타일이 적용됩니다.
+        cols = st.columns(4, gap='small')
+        for col, (page_key, label, description) in zip(cols, choices):
+            with col:
+                with st.container(border=True):
+                    st.markdown(
+                        '<div class="et-nav-desc">' + html.escape(description) + '</div>',
+                        unsafe_allow_html=True,
+                    )
+                    st.page_link(PAGES[page_key], label=label)
