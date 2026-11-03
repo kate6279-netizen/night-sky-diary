@@ -6,6 +6,7 @@
 import calendar
 import datetime as dt
 import html
+from collections import Counter
 
 import streamlit as st
 import streamlit.components.v1 as components
@@ -240,6 +241,12 @@ header[data-testid="stHeader"] button, header[data-testid="stHeader"] a { pointe
 .thread{gap:12px;}
 .kpi{box-shadow:inset 0 1px 0 rgba(255,255,255,.04);}
 @media(max-width:760px){.letter{padding:17px 16px 19px;}.letter .body{font-size:15px;}.bubble{max-width:96%;padding:12px;}.then-now .orb{width:45px;height:45px;}.kpi{padding:12px;}.kpi b{font-size:19px;}}
+/* FRONTEND_WEEKLY_V1 */
+.weekly-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:14px 0 16px;}
+.weekly-summary>div{border:1px solid rgba(163,155,255,.22);border-radius:14px;padding:14px 16px;background:linear-gradient(130deg,rgba(36,41,87,.55),rgba(12,17,42,.7));}
+.weekly-summary small{display:block;color:#a8b1d8;font-size:11px;margin-bottom:6px;}
+.weekly-summary b{color:#f2efff;font-size:18px;font-weight:800;}
+@media(max-width:620px){.weekly-summary{grid-template-columns:1fr;}.weekly-summary>div{padding:10px 14px;display:flex;align-items:center;justify-content:space-between;}.weekly-summary small{margin:0;}}
 /* FRONTEND_HOME_V3: 기록 UX·연결·반응형 */
 .st-key-home_next{margin-top:16px!important;padding:20px!important;border-radius:18px!important;border:1px solid rgba(161,152,255,.26)!important;background:linear-gradient(140deg,rgba(45,46,102,.35),rgba(14,20,46,.45))!important;}
 .st-key-home_next [data-testid="stPageLink"] a,.st-key-home_next a[data-testid="stPageLink-NavLink"]{display:flex!important;align-items:center!important;justify-content:center!important;min-height:51px!important;text-align:center!important;padding:12px!important;border:1px solid rgba(163,155,255,.4)!important;border-radius:13px!important;background:rgba(125,106,230,.17)!important;color:#f1edff!important;font-weight:700!important;}
@@ -538,6 +545,24 @@ def page_home():
                  '<span class="streak">✦ 오늘의 별이 떴어요</span>')
         st.markdown(f'<div class="ctitle">오늘의 감정 기록{badge}</div><div class="trail">' + "".join(cells) + "</div>", unsafe_allow_html=True)
         st.page_link(PAGES["calendar"], label="한 달의 감정 달력 보기 →")
+
+    # 최근 7일 요약: 저장된 기록에서만 계산합니다.
+    recent_entries = [
+        entries.get((today - dt.timedelta(days=i)).isoformat())
+        for i in range(7)
+    ]
+    recent_entries = [e for e in recent_entries if e]
+    recent_top = (Counter(top_emotion(e) for e in recent_entries).most_common(1)[0][0]
+                  if recent_entries else "기록 없음")
+    st.markdown(
+        '<div class="weekly-summary"><div><small>최근 7일 기록</small><b>'
+        + str(len(recent_entries)) + ' / 7일</b></div>'
+        + '<div><small>가장 자주 느낀 감정</small><b>'
+        + html.escape(recent_top) + '</b></div>'
+        + '<div><small>현재 연속 기록</small><b>'
+        + str(streak_days(set(entries), today)) + '일</b></div></div>',
+        unsafe_allow_html=True,
+    )
 
     # 오늘의 기록 다음 행동: 달력과 월간 작품으로 자연스럽게 연결
     with st.container(key="home_next"):
