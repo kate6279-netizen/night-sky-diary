@@ -49,7 +49,7 @@ def map_html(entries: list[dict], height: int = 880, extra: dict | None = None) 
     return _render(data, height, MAP_TEMPLATE)
 
 
-def poster_html(entries: list[dict], year: int, month: int, height: int = 640) -> str:
+def poster_html(entries: list[dict], year: int, month: int, height: int = 640, preview: bool = False) -> str:
     """월간 포스터: 한 달의 별을 날짜 순서로 잇기"""
     X = A.matrix(entries)
     dates = [e["date"] for e in entries]
@@ -57,6 +57,7 @@ def poster_html(entries: list[dict], year: int, month: int, height: int = 640) -
     top = int(mean.argmax()) if len(entries) else -1
     sub = f"{len(entries)}일의 별 · 가장 많이 빛난 감정 {A.EMO[top]}" if top >= 0 else "아직 별이 없어요"
     data = {"mode": "poster", "emo": A.EMO, "colors": COLORS, "seed": year * 13 + month,
+            "year": year, "month": month, "preview": bool(preview),
             "days": calendar.monthrange(year, month)[1], "top": top,
             "title": f"{month}월의 하늘", "subtitle": sub,
             "stars": _stars(entries, X, sims=A.similar_days(X, dates)), "links": []}
