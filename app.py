@@ -744,10 +744,10 @@ with st.sidebar:
     st.markdown(f'<style>.st-key-nav_{current} a {{ background:linear-gradient(135deg,rgba(139,123,255,.3),rgba(90,80,210,.14)) !important;'
                 f' border-color:rgba(165,155,255,.4) !important; }} .st-key-nav_{current} a p {{ color:#fff !important; font-weight:700; }}</style>',
                 unsafe_allow_html=True)
-    # 태양계·유니버스는 기존 링크와 코드를 유지하되 기본 메뉴에서는 숨깁니다.
-    for k in ("home", "calendar", "archive", "gallery", "capsule"):
+    # 팀 원본의 태양계·유니버스를 포함해 모든 페이지를 사이드바에 표시합니다.
+    for k, p in PAGES.items():
         with st.container(key=f"nav_{k}"):
-            st.page_link(PAGES[k])
+            st.page_link(p)
     st.markdown('<div class="side-gap"></div>', unsafe_allow_html=True)
     nick = st.session_state.get("nickname", "")
     with st.container(key="side_bottom"):
