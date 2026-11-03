@@ -15,6 +15,8 @@ import db
 import quotes
 import sky
 from emotion_calendar import page_calendar
+from emotion_gallery import page_gallery
+from emotion_home import render_home_extras
 from model import EMO, predict
 from samples import SAMPLES
 
@@ -435,11 +437,11 @@ def page_home():
             st.markdown('<div class="ctitle">오늘의 감정 비율</div>', unsafe_allow_html=True)
             components.html(sky.donut_html(probs), height=240)
     with c2:
-        with st.container(border=True, height=350):
+        with st.container(border=True):
             t, m = st.columns([1, 1.3], vertical_alignment="center")
             t.markdown('<div class="ctitle" style="margin:0">오늘의 기록</div>', unsafe_allow_html=True)
             with m.container(key="mode"):
-                mode = st.segmented_control("기록 방식", ["일기 쓰기", "10초 기록"], default="일기 쓰기",
+                mode = st.segmented_control("기록 방식", ["일기 쓰기", "10초 기록"], default="10초 기록",
                                             key="rec_mode", label_visibility="collapsed")
             if mode == "10초 기록":
                 with st.container(key="quick"):                    
@@ -512,6 +514,8 @@ def page_home():
                  '<span class="streak">✦ 오늘의 별이 떴어요</span>')
         st.markdown(f'<div class="ctitle">오늘의 감정 기록{badge}</div><div class="trail">' + "".join(cells) + "</div>", unsafe_allow_html=True)
         st.page_link(PAGES["calendar"], label="한 달의 감정 달력 보기 →")
+
+    render_home_extras(entries, today, top_emotion, streak_days, PAGES)
 
 
 # ---------- 화면 2: 감정 태양계 ----------
@@ -679,6 +683,7 @@ def page_capsule():
 PAGES = {
     "home": st.Page(page_home, title="홈", icon=":material/home:", url_path="home", default=True),
     "calendar": st.Page(page_calendar, title="감정 달력", icon=":material/calendar_month:", url_path="calendar"),
+    "gallery": st.Page(page_gallery, title="별자리 갤러리", icon=":material/auto_awesome:", url_path="gallery"),
     "solar": st.Page(page_solar, title="감정 태양계", icon=":material/trip_origin:", url_path="solar"),
     "universe": st.Page(page_universe, title="감정 유니버스", icon=":material/hub:", url_path="universe"),
     "archive": st.Page(page_archive, title="우주의 기록", icon=":material/article:", url_path="archive"),
