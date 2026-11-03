@@ -37,7 +37,11 @@
   .item .mx{font-size:12px;margin:2px 0}
   .item small{font-size:11.5px;color:var(--sub)}
   .item .arr{color:var(--faint);font-size:16px}
-  .none{font-size:12.5px;color:var(--faint);padding:8px 0}
+  .none{font-size:12.5px;color:#b0b9dc;padding:14px 10px;line-height:1.9;border:1px dashed rgba(159,154,231,.26);border-radius:12px;background:rgba(46,46,88,.15)}
+  .mode-label{font-size:12px;line-height:1.45;font-weight:700;color:#dfddff}
+  .mode-label small{display:block;font-size:10.5px;color:#aab3d8;font-weight:400}
+  .map-caption{position:absolute;left:18px;top:16px;max-width:67%;color:#d6d9ff;font-size:12px;line-height:1.65;background:rgba(12,16,39,.79);padding:9px 13px;border:1px solid rgba(165,155,255,.22);border-radius:12px;pointer-events:none}
+  @media(max-width:620px){.map-caption{max-width:90%;left:10px;top:8px;font-size:11px}.mode{left:8px;bottom:8px;gap:6px;padding:5px}.mode-label{font-size:10px}.seg button{padding:6px 8px}.legend{left:10px;gap:6px}}
   .empty{position:absolute;inset:0;display:grid;place-items:center;text-align:center;color:var(--sub);font-size:14px;line-height:1.7}
   @media (max-width:820px){ #app{grid-template-columns:1fr;grid-template-rows:minmax(380px,1fr) auto;height:auto;min-height:__HEIGHT__px} .legend{top:16px;transform:none;grid-auto-flow:column;gap:8px 12px} .side{max-height:360px} }
 </style></head>
@@ -46,13 +50,14 @@
   <div id="stage">
     <canvas id="cv"></canvas>
     <div class="tip" id="tip" hidden></div>
+    <div class="map-caption">✦ 별 하나는 하루의 기록 · 가까운 별은 비슷한 감정</div>
     <div class="legend" id="legend"></div>
-    <div class="mode">감정 지도 (PCA 기반)<div class="seg"><button id="m2" aria-pressed="true">2D</button><button id="m3" aria-pressed="false">3D</button></div></div>
+    <div class="mode"><div class="mode-label">지도 보는 방식<small>원하는 시점으로 전환</small></div><div class="seg"><button id="m2" type="button" aria-label="감정 지도를 평면으로 보기" title="2D: 위에서 내려다보는 평면 지도" aria-pressed="true">평면 2D</button><button id="m3" type="button" aria-label="감정 지도를 입체로 보기" title="3D: 입체 지도를 드래그해 돌려보기" aria-pressed="false">입체 3D</button></div></div>
   </div>
-  <div class="side"><h4 style="margin-bottom:10px">유사한 감정의 날</h4><div class="base" id="base" hidden></div><div class="list" id="list"></div></div>
+  <div class="side"><h4 style="margin-bottom:10px">이 날과 마음이 비슷했던 날</h4><p style="color:#aeb7da;font-size:12px;line-height:1.7;margin:0 0 11px">지도의 별을 누르면 그날과 닮은 다른 날짜를 찾아줘요.</p><div class="base" id="base" hidden></div><div class="list" id="list"></div></div>
 </div>
 <script>
-window.addEventListener('error', e => { const b = document.createElement('div'); b.style.cssText = 'position:fixed;left:12px;right:12px;top:12px;z-index:99;background:#3a1420;color:#ffd7dd;border:1px solid #f0645a;border-radius:8px;padding:10px 12px;font:12px/1.5 monospace'; b.textContent = '감정 유니버스 오류: ' + e.message + (e.lineno ? ' (줄 ' + e.lineno + ')' : ''); document.body.appendChild(b); });
+window.addEventListener('error', e => { if (/^ResizeObserver loop (limit exceeded|completed with undelivered notifications)\.?$/.test(e.message || '')) { e.preventDefault(); return; } const b = document.createElement('div'); b.style.cssText = 'position:fixed;left:12px;right:12px;top:12px;z-index:99;background:#3a1420;color:#ffd7dd;border:1px solid #f0645a;border-radius:8px;padding:10px 12px;font:12px/1.5 monospace'; b.textContent = '감정 유니버스 오류: ' + e.message + (e.lineno ? ' (줄 ' + e.lineno + ')' : ''); document.body.appendChild(b); });
 __PLANET_JS__
 </script>
 <script>
@@ -140,13 +145,13 @@ function draw(){
 function select(i){
   sel = i; draw();
   const base = document.getElementById('base'), list = document.getElementById('list');
-  if (i < 0) { base.textContent = '지도에서 별을 누르면 그날과 감정 구성이 닮은 날을 찾아 줘요.'; list.innerHTML = ''; return; }
+  if (i < 0) { base.textContent = '날짜별 별을 눌러 보세요. 선택한 기록과 감정 구성이 비슷한 날을 보여줘요.'; list.innerHTML = ''; return; }
   const s = stars[i];
   base.innerHTML = `<b>${kor(s.date)}</b>(${EMO[s.top]} + ${EMO[s.second]})과 닮은 날 · ${esc(s.text)}`;
   const sims = (s.similar || []).filter(t => byDate[t.date] !== undefined);
   list.innerHTML = sims.length ? sims.map((t,n) => { const q = stars[byDate[t.date]];
     return `<button class="item" data-d="${esc(t.date)}"><canvas width="96" height="96" id="th${n}"></canvas><span><b>${kor(t.date)}</b><div class="mx"><span style="color:${COL[q.top]}">${EMO[q.top]}</span> <span style="color:#6b7099">+</span> <span style="color:${COL[q.second]}">${EMO[q.second]}</span></div><small>유사도 ${Math.round(t.score*100)}%</small></span><span class="arr">›</span></button>`; }).join('')
-    : '<div class="none">이 기간에 비슷한 날이 없어요.</div>';
+    : '<div class="none">' + (N < 2 ? '지금은 비교할 날짜가 하나뿐이에요.<br>다른 날에도 감정을 기록하면 비슷한 날을 찾을 수 있어요.' : '비슷한 감정을 가진 다른 날짜가 아직 없어요.<br>기록이 쌓이면 이곳에서 비교할 수 있어요.') + '</div>';
   sims.forEach((t,n) => { const q = stars[byDate[t.date]], c = document.getElementById('th'+n).getContext('2d'); c.scale(2,2); drawPlanet(c, 24, 24, 15, COL[q.top], {second: COL[q.second], seed: byDate[t.date]*13+5, glow: .7}); });
   list.querySelectorAll('.item').forEach(b => b.onclick = () => { const j = byDate[b.dataset.d]; if (!visible(stars[j])) { EMO.forEach((e,k) => on.add(k)); lg.querySelectorAll('.lg').forEach(x => x.setAttribute('aria-pressed','true')); } select(j); });
 }
@@ -172,9 +177,11 @@ cv.addEventListener('pointerleave', () => { if (hover >= 0) { hover = -1; draw()
 function zoomAt(f,cx,cy){ const k = Math.min(4, Math.max(.6, view.k*f)); f = k/view.k; if (mode === 2) { view.x = cx-(cx-view.x)*f; view.y = cy-(cy-view.y)*f; } view.k = k; draw(); }
 cv.addEventListener('wheel', e => { e.preventDefault(); const [mx,my] = mpos(e); zoomAt(e.deltaY < 0 ? 1.15 : 1/1.15, mx, my); }, {passive:false});
 
-function resize(){ W = stage.clientWidth; H = stage.clientHeight; cv.width = W*DPR; cv.height = H*DPR; paintBg(); draw(); }
+let resizeFrame = 0, previousWidth = 0, previousHeight = 0;
+function resize(){ const width = Math.max(1, Math.round(stage.clientWidth)), height = Math.max(1, Math.round(stage.clientHeight)); if(width===previousWidth && height===previousHeight) return; previousWidth=width; previousHeight=height; W=width; H=height; cv.width=Math.round(W*DPR); cv.height=Math.round(H*DPR); paintBg(); draw(); }
+function scheduleResize(){ if(resizeFrame) return; resizeFrame=requestAnimationFrame(()=>{resizeFrame=0;resize();}); }
 if (!N) { const e = document.createElement('div'); e.className = 'empty'; e.innerHTML = '이 기간에는 아직 기록이 없어요.'; stage.appendChild(e); }
-new ResizeObserver(resize).observe(stage); resize();
+new ResizeObserver(scheduleResize).observe(stage); scheduleResize();
 if (N) { const latest = stars.slice().sort((a,b) => a.date < b.date ? 1 : -1)[0]; select(latest.i); } else select(-1);
 </script>
 </body></html>
