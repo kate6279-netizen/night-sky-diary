@@ -1,6 +1,5 @@
-"""감정의 궤적 — 한 달의 기록을 작품으로 만드는 별자리 갤러리."""
-from __future__ import annotations
-
+"""월간 별자리 갤러리. 저장 기능이나 AI 모델은 수정하지 않습니다."""
+import calendar
 import datetime as dt
 import html
 from collections import Counter
@@ -11,55 +10,66 @@ import streamlit.components.v1 as components
 import analysis
 import db
 import sky
-from emotion_calendar import preview_entries
 
 
-def page_gallery() -> None:
-    st.markdown('<div class="head"><h1>나의 별자리 갤러리 <small>MONTHLY CONSTELLATION</small></h1><p>하루의 마음이 하나의 별이 되고, 기록이 모여 나만의 한 달을 그려요.</p></div>', unsafe_allow_html=True)
-    nick = st.session_state.get("nickname", "")
-    if not nick:
-        st.info("먼저 홈 화면에서 내 우주 이름을 입력해 주세요.")
+def sample_entries(year, month):
+    """저장하지 않는 미리보기 기록."""
+    samples = ((1, 0), (3, 4), (5, 2), (7, 1), (9, 3), (12, 5),
+               (15, 2), (17, 0), (20, 6), (22, 4), (25, 1), (28, 2))
+    out = []
+    last_day = calendar.monthrange(year, month)[1]
+    for day, index in samples:
+        if day > last_day:
+            continue
+        probabilities = [0.03] * 7
+        probabilities[index] = 0.82
+        out.append({"date": f"{year:04d}-{month:02d}-{day:02d}",
+                    "text": f"디자인 미리보기 · {analysis.EMO[index]}의 별",
+                    "probs": probabilities, "corrected": None, "kind": "quick"})
+    return out
+
+
+def page_gallery():
+    st.markdown('<div class="head"><h1>별자리 갤러리 <small>MY CONSTELLATION</small></h1><p>하루의 마음이 별 하나가 되어 한 달의 그림을 만들어요.</p></div>', unsafe_allow_html=True)
+    nickname = st.session_state.get("nickname", "")
+    if not nickname:
+        st.info("홈에서 내 우주 이름을 먼저 입력해 주세요.")
         return
 
-    entries = db.load_entries(nick)
+    entries = db.load_entries(nickname)
     today = dt.date.today()
     months = set()
     for offset in range(12):
         number = today.year * 12 + today.month - 1 - offset
-        y, m0 = divmod(number, 12)
-        months.add(f"{y:04d}-{m0 + 1:02d}")
-    for e in entries:
+        year, month_zero = divmod(number, 12)
+        months.add(f"{year:04d}-{month_zero + 1:02d}")
+    for entry in entries:
         try:
-            months.add(dt.date.fromisoformat(str(e["date"])).strftime("%Y-%m"))
-        except (TypeError, ValueError, KeyError):
-            continue
+            months.add(dt.date.fromisoformat(str(entry["date"])).strftime("%Y-%m"))
+        except (ValueError, KeyError, TypeError):
+            pass
 
-    ym = st.selectbox("감상할 달", sorted(months, reverse=True),
-                      format_func=lambda m: f"{m[:4]}년 {int(m[5:])}월",
-                      key="gallery_month")
-    year, month = (int(x) for x in ym.split("-"))
-    preview = st.toggle("✨ 별자리 작품 미리보기", key="gallery_preview",
-                        help="기록이 없어도 화면을 체험할 수 있어요. 샘플은 저장되지 않습니다.")
-    month_entries = [e for e in entries if str(e.get("date", "")).startswith(ym)]
+    chosen = st.selectbox("감상할 달", sorted(months, reverse=True),
+                          format_func=lambda value: f"{value[:4]}년 {int(value[5:])}월",
+                          key="star_gallery_month")
+    year, month = map(int, chosen.split("-"))
+    preview = st.toggle("✨ 별자리 미리보기", key="star_gallery_preview",
+                        help="예시 기록은 실제로 저장되지 않습니다.")
+    current = [entry for entry in entries if str(entry.get("date", "")).startswith(chosen)]
     if preview:
-        real_dates = {str(e["date"]) for e in month_entries}
-        month_entries.extend(e for e in preview_entries(year, month) if e["date"] not in real_dates)
-        st.caption("✦ 미리보기 모드 · 샘플 별은 저장되지 않는 가상 기록입니다.")
-    month_entries.sort(key=lambda e: e["date"])
-
-    names = [analysis.EMO[int(analysis.effective(e).argmax())] for e in month_entries]
-    most = Counter(names).most_common(1)[0][0] if names else "아직 없어요"
+        existing = {entry["date"] for entry in current}
+        current.extend(entry for entry in sample_entries(year, month) if entry["date"] not in existing)
+        st.caption("미리보기 모드 · 예시 별은 실제 저장된 기록이 아니에요.")
+    current.sort(key=lambda entry: entry["date"])
+    emotions = [analysis.EMO[int(analysis.effective(entry).argmax())] for entry in current]
+    dominant = Counter(emotions).most_common(1)[0][0] if emotions else "기록 없음"
     st.markdown(
-        '<div style="display:flex;gap:12px;flex-wrap:wrap;margin:14px 0 18px">'
-        f'<div style="flex:1;min-width:160px;border:1px solid rgba(160,157,255,.2);border-radius:15px;background:#151a35;padding:16px 18px"><span style="color:#aeb4df;font-size:12px">이달의 별</span><div style="color:#fff;font-size:24px;font-weight:800">{len(month_entries)}개</div></div>'
-        f'<div style="flex:1;min-width:160px;border:1px solid rgba(160,157,255,.2);border-radius:15px;background:#151a35;padding:16px 18px"><span style="color:#aeb4df;font-size:12px">가장 자주 빛난 감정</span><div style="color:#fff;font-size:24px;font-weight:800">{html.escape(most)}</div></div>'
-        f'<div style="flex:1;min-width:160px;border:1px solid rgba(160,157,255,.2);border-radius:15px;background:#151a35;padding:16px 18px"><span style="color:#aeb4df;font-size:12px">이달의 이야기</span><div style="color:#fff;font-size:24px;font-weight:800">{month}월의 하늘</div></div>'
-        '</div>', unsafe_allow_html=True
-    )
-
-    components.html(sky.poster_html(month_entries, year, month, height=545), height=558, scrolling=False)
-    if not month_entries:
-        st.info("아직 이 달의 별이 없어요. 홈에서 감정을 기록하거나 위의 미리보기를 켜보세요.")
+        '<div style="display:flex;flex-wrap:wrap;gap:12px;margin:12px 0 18px">'
+        f'<div style="flex:1;min-width:140px;padding:16px;border-radius:14px;background:#171d3c;border:1px solid #33385f"><small>이달의 별</small><div style="font-size:24px;font-weight:800;color:#fff">{len(current)}개</div></div>'
+        f'<div style="flex:1;min-width:140px;padding:16px;border-radius:14px;background:#171d3c;border:1px solid #33385f"><small>대표 감정</small><div style="font-size:24px;font-weight:800;color:#fff">{html.escape(dominant)}</div></div>'
+        '</div>', unsafe_allow_html=True)
+    components.html(sky.poster_html(current, year, month, height=540), height=552)
+    if not current:
+        st.info("아직 이번 달 별이 없어요. 감정을 기록하거나 위의 미리보기를 켜보세요.")
     else:
-        st.caption("✦ 별을 클릭하면 그날의 감정과 기록을 볼 수 있어요. 포스터 오른쪽 위에서 PNG 이미지로 저장할 수도 있습니다.")
-    st.markdown('<div style="padding:17px 20px;margin-top:10px;border:1px solid rgba(160,157,255,.2);border-radius:16px;background:linear-gradient(120deg,rgba(139,123,255,.16),rgba(91,132,240,.06));color:#cbd2f5;line-height:1.8;font-size:13px"><b style="color:#fff">나만의 우주는 매일 자라요.</b><p style="margin:5px 0 0">날마다 감정을 기록하면 새로운 별이 생기고, 한 달의 궤적이 하나의 그림으로 완성됩니다. 색은 그날의 대표 감정을 나타내요.</p></div>', unsafe_allow_html=True)
+        st.caption("별을 클릭하면 날짜별 감정과 메모를 볼 수 있어요.")
