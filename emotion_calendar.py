@@ -65,7 +65,7 @@ def _color_styles(year: int, month: int, by_date: dict[str, dict], selected: str
     return "".join(css)
 
 
-def page_calendar() -> None:
+def page_calendar(on_edit=None) -> None:
     """메뉴에서 실행하는 새 달력 페이지."""
     nick = st.session_state.get("nickname", "")
     st.markdown('<div class="head"><h1>감정 달력 <small>EMOTION CALENDAR</small></h1><p>하루의 마음이 색으로 남아, 한 달의 별자리가 되어 가요.</p></div>', unsafe_allow_html=True)
@@ -155,3 +155,5 @@ def page_calendar() -> None:
                 st.caption("직접 선택한 감정을 바탕으로 계산한 비율이에요. AI 분석 신뢰도가 아닙니다.")
             else:
                 st.caption("글에서 추정한 감정의 비율로, 실제 심리 상태를 진단하는 수치는 아니에요.")
+        if on_edit is not None and st.button("✎ 이 날짜 기록 수정하기", key="calendar_edit_selected"):
+            on_edit(date_obj)
