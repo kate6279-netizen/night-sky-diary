@@ -151,7 +151,7 @@ def page_calendar() -> None:
                 if st.button(label, key=f"emo_cal_{date_key.replace('-', '')}",
                              use_container_width=True, disabled=not bool(entry), help=tooltip):
                     st.session_state["emotion_calendar_selected"] = date_key
-                    selected = date_key
+                    st.rerun()
     selected = st.session_state.get("emotion_calendar_selected", selected)
     if selected not in by_date or not selected.startswith(ym):
         selected = max((str(e["date"]) for e in month_rows), default="")
