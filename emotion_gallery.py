@@ -69,10 +69,13 @@ def page_gallery():
         f'<div style="flex:1;min-width:140px;padding:16px;border-radius:14px;background:#171d3c;border:1px solid #33385f"><small>이달의 별</small><div style="font-size:24px;font-weight:800;color:#fff">{len(current)}개</div></div>'
         f'<div style="flex:1;min-width:140px;padding:16px;border-radius:14px;background:#171d3c;border:1px solid #33385f"><small>대표 감정</small><div style="font-size:24px;font-weight:800;color:#fff">{html.escape(dominant)}</div></div>'
         '</div>', unsafe_allow_html=True)
-    components.html(sky.poster_html(current, year, month, height=540, preview=preview), height=552, scrolling=False)
     if not current:
-        st.info("아직 이번 달 별이 없어요. 감정을 기록하거나 위의 미리보기를 켜보세요.")
-    elif preview:
+        st.info("아직 이번 달의 별이 없어요. 홈에서 감정을 기록하거나 위의 별자리 미리보기를 켜보세요.")
+        return
+    if len(current) == 1 and not preview:
+        st.caption("✦ 첫 번째 별이 떠 있어요. 다른 날에도 기록하면 별이 연결되어 한 달의 작품이 자라나요.")
+    components.html(sky.poster_html(current, year, month, height=540, preview=preview), height=552, scrolling=False)
+    if preview:
         st.caption("미리보기 작품에는 가상 날짜가 포함되어 있고, 저장한 PNG에도 미리보기 표시가 남아요.")
     else:
         st.caption("별을 눌러 날짜별 감정을 확인하고, 오른쪽 위 'PNG 저장' 버튼으로 작품을 저장해 보세요.")
