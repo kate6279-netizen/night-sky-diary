@@ -42,34 +42,13 @@ def _emotion_of(entry: dict) -> tuple[int, list[float]]:
     return max(range(len(weights)), key=weights.__getitem__), weights
 
 
-def preview_entries(year: int, month: int) -> list[dict]:
-    """디자인 체험용 가상 기록. 데이터베이스에는 절대 저장되지 않습니다."""
-    pattern = [(1, 0), (3, 4), (5, 2), (7, 1), (9, 3), (12, 5),
-               (15, 2), (17, 0), (20, 6), (22, 4), (25, 1), (28, 2)]
-    limit = calendar.monthrange(year, month)[1]
-    result = []
-    for day, emotion_idx in pattern:
-        if day > limit:
-            continue
-        weights = [0.03] * 7
-        weights[emotion_idx] = 0.82
-        mood = analysis.EMO[emotion_idx]
-        result.append({"date": f"{year:04d}-{month:02d}-{day:02d}",
-                       "text": f"디자인 미리보기용 기록 · {mood}을(를) 느꼈던 하루",
-                       "probs": weights, "corrected": None, "kind": "quick"})
-    return result
-
-
 def _color_styles(year: int, month: int, by_date: dict[str, dict], selected: str) -> str:
     """선택된 달의 버튼만 꾸밉니다."""
     css = [
         "<style>",
-        ".emo-cal-weekdays{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;text-align:center;margin:3px 0 9px}.emo-cal-weekdays span{color:#b2b8df;font-size:12px;font-weight:700}",
-        "div[data-testid='stHorizontalBlock']:has([class*='st-key-emo_cal_']){flex-wrap:nowrap!important;gap:6px!important;align-items:stretch!important}",
-        "div[data-testid='stHorizontalBlock']:has([class*='st-key-emo_cal_']) [data-testid='stColumn']{flex:1 1 0!important;width:0!important;min-width:0!important}",
         "[class*='st-key-emo_cal_'] button{min-height:67px!important;border-radius:13px!important;font-size:15px!important;font-weight:700!important;transition:transform .15s,border-color .15s!important;}",
         "[class*='st-key-emo_cal_'] button:enabled:hover{transform:translateY(-2px)!important;}",
-        "[class*='st-key-emo_cal_'] button:disabled{opacity:1!important;background:#131730!important;color:#9ea9d1!important;border:1px solid rgba(145,155,225,.19)!important;}",
+        "[class*='st-key-emo_cal_'] button:disabled{opacity:.55!important;background:#131730!important;color:#747ca6!important;}",
         "@media(max-width:680px){[class*='st-key-emo_cal_'] button{min-height:43px!important;padding:4px 1px!important;font-size:11px!important;border-radius:9px!important;}}",
     ]
     for date, entry in by_date.items():
@@ -95,19 +74,13 @@ def page_calendar() -> None:
         return
 
     entries = db.load_entries(nick)
+    by_date = {str(e["date"]): e for e in entries}
     today = dt.date.today()
     options = _month_options(today, entries)
     ym = st.selectbox("확인할 달", options, index=0, key="emotion_calendar_ym",
                       format_func=lambda x: f"{x[:4]}년 {int(x[5:])}월")
     year, month = map(int, ym.split("-"))
     n_days = calendar.monthrange(year, month)[1]
-    preview = st.toggle("✨ 색깔 달력 디자인 미리보기", key="emotion_calendar_preview",
-                        help="실제 기록이 없어도 가상의 별을 보여줘요. 미리보기 내용은 저장되지 않습니다.")
-    real_dates = {str(e["date"]) for e in entries}
-    if preview:
-        entries = list(entries) + [e for e in preview_entries(year, month) if e["date"] not in real_dates]
-        st.caption("✦ 미리보기 모드 · 색칠된 날짜 중 일부는 가상 예시입니다. 실제 기록이나 DB에는 저장되지 않아요.")
-    by_date = {str(e["date"]): e for e in entries}
     month_rows = [e for e in entries if str(e["date"]).startswith(ym)]
     emotions = [analysis.EMO[_emotion_of(e)[0]] for e in month_rows]
     top = Counter(emotions).most_common(1)[0][0] if emotions else None
@@ -131,7 +104,8 @@ def page_calendar() -> None:
         selected = max((str(e["date"]) for e in month_rows), default="")
     st.markdown(_color_styles(year, month, by_date, selected), unsafe_allow_html=True)
 
-    st.markdown('<div class="emo-cal-weekdays">' + "".join(f"<span>{day}</span>" for day in _WEEKDAYS) + "</div>", unsafe_allow_html=True)
+    for col, label in zip(st.columns(7, gap="small"), _WEEKDAYS):
+        col.markdown(f'<div style="text-align:center;font-size:12px;color:#b2b8df;font-weight:700;padding:4px 0">{label}</div>', unsafe_allow_html=True)
 
     for week in calendar.monthcalendar(year, month):
         cols = st.columns(7, gap="small")
@@ -153,14 +127,14 @@ def page_calendar() -> None:
                 if st.button(label, key=f"emo_cal_{date_key.replace('-', '')}",
                              use_container_width=True, disabled=not bool(entry), help=tooltip):
                     st.session_state["emotion_calendar_selected"] = date_key
-                    st.rerun()
+                    selected = date_key
     selected = st.session_state.get("emotion_calendar_selected", selected)
     if selected not in by_date or not selected.startswith(ym):
         selected = max((str(e["date"]) for e in month_rows), default="")
 
     st.markdown('<div style="height:14px"></div>', unsafe_allow_html=True)
     if not selected:
-        st.markdown('<div style="padding:26px;border-radius:16px;border:1px solid rgba(148,157,242,.28);background:linear-gradient(130deg,rgba(139,123,255,.13),rgba(91,132,240,.06));text-align:center;color:#d4daf8"><div style="font-size:34px;margin-bottom:8px">✦</div><b>아직 이 달의 별이 없어요</b><p style="margin:8px 0 0;line-height:1.8;font-size:13px">홈에서 10초 기록이나 일기를 남기면 날짜마다 감정의 색이 쌓여요.<br>위의 '색깔 달력 디자인 미리보기'를 켜서 먼저 체험해 볼 수도 있어요.</p></div>', unsafe_allow_html=True)
+        st.info("아직 이 달의 감정 기록이 없어요. 홈에서 10초 기록이나 일기를 남겨 보세요. 기록하면 이 달력에 별이 생겨요.")
         return
 
     entry = by_date[selected]
