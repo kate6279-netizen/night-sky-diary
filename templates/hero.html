@@ -52,8 +52,8 @@ if (has) {
   const pct = Math.round(D.conf * 100), C = 2 * Math.PI * 19;
   card.innerHTML = `<h4>오늘의 감정</h4><div class="emo"><i style="background:radial-gradient(circle at 35% 35%,#fff,${c1} 45%,${c1});box-shadow:0 0 14px ${c1}"></i>${EMO[D.top]}</div>
     <p class="msg">${esc(D.msg)}</p>
-    <div class="conf"><div><small>AI 분석 신뢰도</small><b>${pct}%</b></div>
-      <svg viewBox="0 0 46 46" role="img" aria-label="AI 분석 신뢰도 ${pct}%"><circle cx="23" cy="23" r="19" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="4"/>
+    <div class="conf"><div><small>대표 감정 비율</small><b>${pct}%</b></div>
+      <svg viewBox="0 0 46 46" role="img" aria-label="대표 감정 비율 ${pct}%"><circle cx="23" cy="23" r="19" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="4"/>
       <circle cx="23" cy="23" r="19" fill="none" stroke="${c1}" stroke-width="4" stroke-linecap="round" stroke-dasharray="${C*D.conf} ${C}" transform="rotate(-90 23 23)"/></svg></div>`;
 } else {
   card.innerHTML = `<h4>오늘의 감정</h4><p class="none">아직 오늘의 기록이 없어요.<br>아래에 오늘의 일기를 쓰면<br>AI가 감정을 읽고 행성을 그려 줘요.</p>`;
