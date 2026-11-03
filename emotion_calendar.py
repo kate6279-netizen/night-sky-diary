@@ -64,11 +64,16 @@ def _color_styles(year: int, month: int, by_date: dict[str, dict], selected: str
         bg = f"linear-gradient(145deg,{color}43,{color}12 55%,#10152c)"
         glow = f"box-shadow:0 0 0 1px {color}88,0 0 18px {color}30!important;" if date == selected else ""
         css.append(f"div.{key} button{{background:{bg}!important;border:1px solid {color}{border}!important;color:#fff!important;{glow}}}")
+    # 날짜 선택 여부와 별개로 오늘은 금색 테두리로 알아볼 수 있게 표시합니다.
+    today = dt.date.today()
+    if today.year == year and today.month == month:
+        today_key = f"st-key-emo_cal_{today.strftime('%Y%m%d')}"
+        css.append(f"div.{today_key} button{{outline:2px solid #ffcf6a!important;outline-offset:-2px!important;}}")
     css.append("</style>")
     return "".join(css)
 
 
-def page_calendar(on_edit=None) -> None:
+def page_calendar(on_edit=None, on_create=None) -> None:
     """메뉴에서 실행하는 새 달력 페이지."""
     nick = st.session_state.get("nickname", "")
     st.markdown('<div class="head"><h1>감정 달력 <small>EMOTION CALENDAR</small></h1><p>하루의 마음이 색으로 남아, 한 달의 별자리가 되어 가요.</p></div>', unsafe_allow_html=True)
@@ -136,7 +141,9 @@ def page_calendar(on_edit=None) -> None:
 
     st.markdown('<div style="height:14px"></div>', unsafe_allow_html=True)
     if not selected:
-        st.info("아직 이 달의 감정 기록이 없어요. 홈에서 10초 기록이나 일기를 남겨 보세요. 기록하면 이 달력에 별이 생겨요.")
+        st.info("아직 이 달에 기록된 별이 없어요. 홈에서 감정을 기록하면 해당 날짜에 감정 색이 표시돼요.")
+        if on_create is not None and st.button("✦ 오늘 감정 기록하러 가기", key="calendar_create_today"):
+            on_create()
         return
 
     entry = by_date[selected]
