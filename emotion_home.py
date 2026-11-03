@@ -23,4 +23,9 @@ def render_home_extras(entries, today, top_emotion, streak_days, PAGES):
     if st.session_state.get('home_message_open') == today.isoformat():
         st.info(messages[today.toordinal() % len(messages)])
     streak = streak_days(set(entries), today)
-    st.markdown('<div class="streak-badges">' + ''.join(f'<span class="{\"earned\" if streak >= goal else \"\"}">✦ {goal}일 {\"달성\" if streak >= goal else \"도전\"}</span>' for goal in (3, 7, 30)) + '</div>', unsafe_allow_html=True)
+    badges = []
+    for goal in (3, 7, 30):
+        status = 'earned' if streak >= goal else ''
+        label = '달성' if streak >= goal else '도전'
+        badges.append(f'<span class="{status}">✦ {goal}일 {label}</span>')
+    st.markdown('<div class="streak-badges">' + ''.join(badges) + '</div>', unsafe_allow_html=True)
