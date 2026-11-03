@@ -80,7 +80,7 @@ header[data-testid="stHeader"] button, header[data-testid="stHeader"] a { pointe
 .stTextArea textarea:focus { border-color:var(--violet) !important; box-shadow:0 0 0 1px var(--violet) !important; }
 .stDateInput input, .stTextInput input, [data-baseweb="select"] > div { background:rgba(8,10,28,.55) !important; border-radius:10px !important; }
 .stButton > button, [data-testid="stPopover"] button { border-radius:999px; padding:.45rem 1.1rem; font-weight:500; border:1px solid var(--line-hi); background:transparent; width:100%; }
-.stButton > button[kind="primary"], .stFormSubmitButton > button { background:linear-gradient(135deg,#9a8cff,#6f5ef0) !important; color:#fff !important; border:0 !important; font-weight:700; box-shadow:0 6px 22px rgba(120,100,255,.26); border-radius:999px; width:100%; }
+.stButton > button[kind="primary"], .stFormSubmitButton > button { background:linear-gradient(135deg,#ff9fc6,#6f5ef0) !important; color:#fff !important; border:0 !important; font-weight:700; box-shadow:0 6px 22px rgba(120,100,255,.26); border-radius:999px; width:100%; }
 .stButton > button[kind="primary"]:hover { filter:brightness(1.08); color:#fff; }
 [data-testid="stVerticalBlockBorderWrapper"] { background:var(--card); border:1px solid var(--line) !important; border-radius:16px; }
 .ctitle { font-size:14px; font-weight:700; color:#eceaff; margin:0 0 10px; }
@@ -104,9 +104,42 @@ header[data-testid="stHeader"] button, header[data-testid="stHeader"] a { pointe
 .streak { float:right; font-size:12px; font-weight:500; color:var(--gold); }
 .streak.off { color:var(--faint); }
 .st-key-mode [data-testid="stButtonGroup"] { justify-content:flex-end; }
-.st-key-quick [data-testid="stButtonGroup"] button { border-radius:999px; }
-.arrive { display:flex; align-items:center; gap:14px; padding:4px 2px; }
-.arrive .env { width:40px; height:40px; border-radius:12px; display:grid; place-items:center; flex:none; font-size:20px; background:radial-gradient(circle at 30% 30%, rgba(255,207,106,.35), rgba(255,207,106,.05)); border:1px solid rgba(255,207,106,.4); }
+/* 감정 선택 버튼 기본 디자인 */
+/* EMOTION_CARDS_V1: 감정 카드 버튼 디자인 */
+.st-key-quick [data-testid="stButtonGroup"] button:nth-of-type(1) { --star:#FFCF4A; --symbol:"☀"; }
+.st-key-quick [data-testid="stButtonGroup"] button:nth-of-type(2) { --star:#FF8FB1; --symbol:"✧"; }
+.st-key-quick [data-testid="stButtonGroup"] button:nth-of-type(3) { --star:#6FD3A8; --symbol:"✳"; }
+.st-key-quick [data-testid="stButtonGroup"] button:nth-of-type(4) { --star:#9AA6B8; --symbol:"☾"; }
+.st-key-quick [data-testid="stButtonGroup"] button:nth-of-type(5) { --star:#5B84F0; --symbol:"✦"; }
+.st-key-quick [data-testid="stButtonGroup"] button:nth-of-type(6) { --star:#B08CF0; --symbol:"✷"; }
+.st-key-quick [data-testid="stButtonGroup"] button:nth-of-type(7) { --star:#F0645A; --symbol:"✹"; }
+.st-key-quick [data-testid="stButtonGroup"] button { --star:#B08CF0; --symbol:"✦"; box-sizing:border-box !important; display:inline-flex !important; flex-direction:column !important; align-items:center !important; justify-content:center !important; flex:1 1 72px !important; min-width:65px !important; max-width:125px !important; min-height:86px !important; height:86px !important; gap:5px !important; padding:8px 6px !important; border-radius:16px !important; border:1px solid rgba(164,170,220,.22) !important; background:linear-gradient(155deg,#20294c,#10162d) !important; color:#e9eaff !important; font-weight:600 !important; font-size:13px !important; line-height:1.25 !important; box-shadow:inset 0 1px 0 rgba(255,255,255,.04) !important; transition:transform .18s ease,filter .18s ease,box-shadow .18s ease,border-color .18s ease !important; }
+.st-key-quick [data-testid="stButtonGroup"] button::before { content:var(--symbol); display:block; flex:none; color:var(--star); font-size:26px; line-height:1; font-weight:400; text-shadow:0 0 12px color-mix(in srgb,var(--star) 55%,transparent); }
+.st-key-quick [data-testid="stButtonGroup"] button:hover:not(:disabled) { transform:translateY(-3px) !important; border-color:var(--star) !important; filter:brightness(1.12) !important; box-shadow:0 6px 18px rgba(8,8,29,.45) !important; }
+.st-key-quick [data-testid="stButtonGroup"] button:is([data-selected],[kind="pillsActive"]) { color:#FFFFFF !important; background:linear-gradient(155deg,color-mix(in srgb,var(--star) 33%,#111832),#11182f) !important; border-color:var(--star) !important; box-shadow:0 0 0 1px color-mix(in srgb,var(--star) 38%,transparent),0 7px 20px color-mix(in srgb,var(--star) 22%,transparent) !important; transform:translateY(-2px) !important; }
+.st-key-quick [data-testid="stButtonGroup"] button:is([data-selected],[kind="pillsActive"])::before { animation:emotion-card-twinkle 2s ease-in-out infinite; }
+.st-key-quick [data-testid="stButtonGroup"] button:focus-visible { outline:2px solid var(--star) !important; outline-offset:3px !important; }
+@keyframes emotion-card-twinkle { 0%,100% { transform:scale(1); opacity:1; } 50% { transform:scale(1.15); opacity:.75; } }
+@media (max-width:600px) { .st-key-quick [data-testid="stButtonGroup"] button { flex:1 1 72px !important; min-width:65px !important; min-height:78px !important; height:78px !important; } }
+@media (prefers-reduced-motion:reduce) { .st-key-quick [data-testid="stButtonGroup"] button,.st-key-quick [data-testid="stButtonGroup"] button::before { animation:none !important; transition:none !important; } }
+/* 타임캡슐 디자인 - 기존 CSS */
+.arrive {
+    display:flex;
+    align-items:center;
+    gap:14px;
+    padding:4px 2px;
+}
+.arrive .env {
+    width:40px;
+    height:40px;
+    border-radius:12px;
+    display:grid;
+    place-items:center;
+    flex:none;
+    font-size:20px;
+    background:radial-gradient(circle at 30% 30%, rgba(255,207,106,.35), rgba(255,207,106,.05));
+    border:1px solid rgba(255,207,106,.4);
+}
 .arrive b { display:block; font-size:14.5px; color:#fff3d6; }
 .arrive span { font-size:12.5px; color:var(--sub); }
 .kpi { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:14px 16px; }
@@ -141,6 +174,61 @@ header[data-testid="stHeader"] button, header[data-testid="stHeader"] a { pointe
 .arc .mix { display:flex; gap:2px; height:5px; margin:8px 0; max-width:260px; }
 .arc .mix i { display:block; border-radius:3px; }
 .arc p { margin:0; font-size:13.5px; line-height:1.7; color:#d6d9f0; }
+/* EMOTION_INTENSITY_V1: 별빛 감정 세기 */
+.st-key-quick [data-testid="stSlider"] { position:relative; margin-top:8px !important; margin-bottom:8px !important; padding:17px 17px 24px !important; border-radius:18px !important; border:1px solid rgba(175,155,255,.32) !important; background:linear-gradient(135deg,rgba(40,44,90,.72),rgba(15,19,45,.92)) !important; box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 10px 26px rgba(5,7,28,.16) !important; }
+.st-key-quick [data-testid="stSlider"]::after { content:"✦ 나의 별빛이 얼마나 강하게 빛나고 있나요?"; display:block; padding-top:9px; color:#b9b2e9; font-size:11px; line-height:1.6; letter-spacing:.01em; pointer-events:none; }
+.st-key-quick [data-testid="stSlider"] label { color:#f0eaff !important; font-weight:700 !important; }
+.st-key-quick [data-testid="stSlider"] [role="slider"] { background:radial-gradient(circle at 30% 25%,#ffffff 0%,#f2d6ff 32%,#a68bff 72%,#7669e8 100%) !important; border:2px solid #f6e7ff !important; box-shadow:0 0 0 4px rgba(180,145,255,.19),0 0 17px rgba(176,143,255,.8) !important; }
+.st-key-quick [data-testid="stSlider"] [role="slider"]:hover { box-shadow:0 0 0 6px rgba(180,145,255,.24),0 0 25px rgba(192,157,255,.9) !important; }
+.st-key-quick [data-testid="stSliderThumbValue"] { color:#f5d6ff !important; font-weight:700 !important; text-shadow:0 0 9px rgba(175,128,255,.3); }
+.st-key-quick [data-testid="stSliderTickBar"] { opacity:1 !important; color:#aeb6d9 !important; font-size:12px !important; }
+@media (prefers-reduced-motion:reduce) { .st-key-quick [data-testid="stSlider"] [role="slider"] { transition:none !important; } }
+/* EMOTION_MEMO_V1: 마음 메모 입력창 */
+.st-key-quick [data-testid="stTextInput"] { margin-top:7px !important; }
+.st-key-quick [data-testid="stTextInput"] label { font-weight:700 !important; color:#f0eaff !important; }
+.st-key-quick [data-testid="stTextInput"] [data-baseweb="input"] { background:linear-gradient(125deg,rgba(35,40,82,.85),rgba(15,19,44,.96)) !important; border:1px solid rgba(171,154,255,.43) !important; border-radius:14px !important; box-shadow:inset 0 1px 0 rgba(255,255,255,.07),0 5px 18px rgba(5,7,28,.15) !important; transition:border-color .2s ease,box-shadow .2s ease !important; overflow:hidden !important; }
+.st-key-quick [data-testid="stTextInput"] [data-baseweb="input"]:focus-within { border-color:#d4b4ff !important; box-shadow:0 0 0 3px rgba(171,136,255,.19),0 0 18px rgba(157,125,255,.16) !important; }
+.st-key-quick [data-testid="stTextInput"] input { min-height:47px !important; background:transparent !important; color:#f0ecff !important; font-size:14px !important; padding:0 16px !important; }
+.st-key-quick [data-testid="stTextInput"] input::placeholder { color:#9ca5c7 !important; opacity:1 !important; }
+@media (prefers-reduced-motion:reduce) { .st-key-quick [data-testid="stTextInput"] [data-baseweb="input"] { transition:none !important; } }
+/* EMOTION_SAVE_BUTTON_V1: 오늘의 별 만들기 버튼 */
+.st-key-q_save .stButton > button[kind="primary"],.st-key-q_save button[kind="primary"] { width:100% !important; min-height:56px !important; border-radius:16px !important; display:flex !important; align-items:center !important; justify-content:center !important; background:linear-gradient(112deg,#6456CF 0%,#8772E9 52%,#D38BC1 100%) !important; color:#FFFFFF !important; border:1px solid rgba(230,213,255,.62) !important; box-shadow:0 8px 23px rgba(111,83,222,.29),inset 0 1px 0 rgba(255,255,255,.22) !important; font-size:15px !important; font-weight:700 !important; letter-spacing:.01em !important; text-shadow:0 1px 4px rgba(45,36,96,.34) !important; transition:filter .18s ease,transform .18s ease,box-shadow .18s ease !important; }
+.st-key-q_save .stButton > button[kind="primary"]:hover,.st-key-q_save button[kind="primary"]:hover { filter:brightness(1.11) !important; transform:translateY(-2px) !important; box-shadow:0 11px 28px rgba(133,107,243,.42),0 0 18px rgba(180,150,255,.2) !important; }
+.st-key-q_save .stButton > button[kind="primary"]:active,.st-key-q_save button[kind="primary"]:active { transform:translateY(0) !important; filter:brightness(.98) !important; }
+.st-key-q_save .stButton > button[kind="primary"]:focus-visible,.st-key-q_save button[kind="primary"]:focus-visible { outline:2px solid #F2D5FF !important; outline-offset:3px !important; }
+@media (prefers-reduced-motion:reduce) { .st-key-q_save .stButton > button[kind="primary"],.st-key-q_save button[kind="primary"] { transition:none !important; } }
+/* EMOTION_RESULT_CARD_V1: 저장한 감정 별 카드 */
+.st-key-quick .quick-result { --star:#ffcf4a; --star2:#b08cf0; position:relative; isolation:isolate; overflow:hidden; padding:22px 14px 20px; margin:12px 0 4px; border:1px solid rgba(190,174,255,.38); border-radius:19px; background:radial-gradient(circle at 50% 15%,color-mix(in srgb,var(--star) 16%,transparent),transparent 58%),linear-gradient(165deg,#20264b,#10162e); text-align:center; box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 12px 26px rgba(5,6,24,.24); }
+.st-key-quick .quick-result-kicker { color:#cfbefd; font-size:10px; letter-spacing:.16em; font-weight:700; }
+.st-key-quick .quick-result-star { position:relative; display:grid; place-items:center; width:90px; height:90px; margin:14px auto 12px; border-radius:50%; background:radial-gradient(circle at 31% 27%,#fff 0%,color-mix(in srgb,var(--star) 55%,white) 13%,var(--star) 48%,color-mix(in srgb,var(--star2) 56%,#13152e) 88%); box-shadow:0 0 0 9px color-mix(in srgb,var(--star) 8%,transparent),0 0 29px color-mix(in srgb,var(--star) 36%,transparent); }
+.st-key-quick .quick-result-star::after { content:"✦"; position:absolute; font-size:17px; color:#fff3cb; top:-16px; right:-14px; text-shadow:0 0 12px #fff4b5; animation:quick-result-spark 2.4s ease-in-out infinite; }
+.st-key-quick .quick-result-title { font-size:17px; font-weight:800; color:#fff8e6; line-height:1.6; }
+.st-key-quick .quick-result-copy { font-size:12px; color:#c5ccec; line-height:1.75; margin-top:6px; }
+.st-key-quick .quick-result-tags { display:flex; justify-content:center; flex-wrap:wrap; gap:6px; margin:12px 0 0; }
+.st-key-quick .quick-result-tag { display:inline-flex; align-items:center; border-radius:999px; padding:5px 10px; border:1px solid color-mix(in srgb,var(--tag) 55%,transparent); background:color-mix(in srgb,var(--tag) 12%,transparent); color:#f1efff; font-size:11px; font-weight:600; }
+.st-key-quick .quick-result-footer { margin-top:12px; color:#adb8dc; font-size:11px; }
+@keyframes quick-result-spark { 0%,100% { transform:scale(.8); opacity:.65; } 50% { transform:scale(1.22); opacity:1; } }
+@media (prefers-reduced-motion:reduce) { .st-key-quick .quick-result-star::after { animation:none !important; } }
+/* EMOTION_INTENSITY_CHOICE_V2: 3단계 별빛 카드 */
+.st-key-intensity_choice { border:1px solid rgba(174,158,255,.35) !important; border-radius:18px !important; padding:17px !important; margin:12px 0 !important; background:linear-gradient(145deg,rgba(39,43,87,.75),rgba(13,17,42,.93)) !important; }
+.st-key-intensity_choice [data-testid="stButtonGroup"] { width:100% !important; }
+.st-key-intensity_choice [data-testid="stButtonGroup"] > div:last-child { display:grid !important; grid-template-columns:repeat(3,minmax(0,1fr)) !important; gap:9px !important; width:100% !important; max-width:none !important; overflow:visible !important; }
+.st-key-intensity_choice [data-testid="stButtonGroup"] button:nth-of-type(1) { --energy:#AABADB; --energy-symbol:"✧"; }
+.st-key-intensity_choice [data-testid="stButtonGroup"] button:nth-of-type(2) { --energy:#C5A6FF; --energy-symbol:"✦"; }
+.st-key-intensity_choice [data-testid="stButtonGroup"] button:nth-of-type(3) { --energy:#FFCF6A; --energy-symbol:"✺"; }
+.st-key-intensity_choice [data-testid="stButtonGroup"] button { box-sizing:border-box !important; flex:1 1 0 !important; min-width:0 !important; max-width:none !important; width:100% !important; height:85px !important; min-height:85px !important; margin:0 !important; padding:10px 5px !important; border:1px solid #464F77 !important; border-radius:14px !important; background:linear-gradient(150deg,#202A4A,#101831) !important; color:#E8EAFF !important; box-shadow:none !important; transform:none !important; display:flex !important; flex-direction:column !important; align-items:center !important; justify-content:center !important; gap:6px !important; font-size:14px !important; text-align:center !important; font-weight:700 !important; }
+.st-key-intensity_choice [data-testid="stButtonGroup"] button::before { content:var(--energy-symbol) !important; display:block !important; color:var(--energy) !important; text-shadow:0 0 12px color-mix(in srgb,var(--energy) 50%,transparent) !important; font-size:27px !important; line-height:1 !important; }
+.st-key-intensity_choice [data-testid="stButtonGroup"] button:is([data-selected],[kind="segmented_controlActive"]) { background:linear-gradient(160deg,color-mix(in srgb,var(--energy) 23%,#161D3D),#171B39) !important; border:1px solid var(--energy) !important; color:#FFFFFF !important; box-shadow:0 0 0 1px color-mix(in srgb,var(--energy) 35%,transparent),0 6px 18px color-mix(in srgb,var(--energy) 20%,transparent) !important; transform:translateY(-1px) !important; }
+.st-key-intensity_choice [data-testid="stButtonGroup"] button:is([data-selected],[kind="segmented_controlActive"])::before { animation:emotion-energy-glow 2.1s ease-in-out infinite !important; }
+.st-key-intensity_choice [data-testid="stButtonGroup"] button:hover:not(:disabled) { filter:brightness(1.1) !important; border-color:var(--energy) !important; }
+.st-key-intensity_choice [data-testid="stButtonGroup"] button:focus-visible { outline:2px solid var(--energy) !important; outline-offset:3px !important; }
+.st-key-intensity_choice::after { content:"✦ 나의 별빛이 얼마나 강하게 빛나고 있나요?"; display:block; padding-top:9px; color:#B5B5E5; font-size:11px; }
+@keyframes emotion-energy-glow { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:.75; transform:scale(1.18); } }
+@media (prefers-reduced-motion:reduce) { .st-key-intensity_choice [data-testid="stButtonGroup"] button,.st-key-intensity_choice [data-testid="stButtonGroup"] button::before { animation:none !important; transition:none !important; } }
+/* EMOTION_INTENSITY_EQUAL_WIDTH_V1 */
+.st-key-intensity_choice [data-testid="stButtonGroup"] { display:block !important; width:100% !important; max-width:100% !important; }
+.st-key-intensity_choice [data-testid="stButtonGroup"] div:has(> button[data-variant="segmented_control"]) { display:grid !important; grid-template-columns:repeat(3,minmax(0,1fr)) !important; column-gap:10px !important; row-gap:10px !important; align-items:stretch !important; width:100% !important; min-width:0 !important; max-width:100% !important; overflow:visible !important; }
+.st-key-intensity_choice [data-testid="stButtonGroup"] button[data-variant="segmented_control"] { box-sizing:border-box !important; display:flex !important; width:100% !important; min-width:0 !important; max-width:none !important; flex:none !important; margin:0 !important; }
 </style>""", unsafe_allow_html=True)
 
 LOGO = ('<svg viewBox="0 0 40 40" fill="none"><path d="M20 3l2.6 13.4L36 20l-13.4 2.6L20 37l-2.6-14.4L4 20l13.4-3.6z" fill="url(#lg)" opacity=".95"/>'
@@ -164,6 +252,16 @@ def quick_probs(picked: list[str], level: str) -> list[float]:
     main = {picked[0]: w} if len(picked) == 1 else {picked[0]: w * .6, picked[1]: w * .4}
     rest = (1 - w) / (len(EMO) - len(main))
     return [main.get(e, rest) for e in EMO]
+
+
+
+def limit_quick_selection():
+    """Keep the last valid selection when a third emotion is clicked."""
+    current = list(st.session_state.get("q_pick") or [])
+    if len(current) > 2:
+        st.session_state["q_pick"] = list(st.session_state.get("_q_pick_last_valid", current[:2]))
+    else:
+        st.session_state["_q_pick_last_valid"] = current
 
 
 def streak_days(dates: set[str], today: dt.date) -> int:
@@ -269,6 +367,34 @@ def nick_or_login() -> str:
 
 
 # ---------- 화면 1: 홈 (오늘의 별) ----------
+# EMOTION_RESULT_CARD_V1
+def show_quick_result_card(result):
+    """저장 후 한 번 표시할 카드. 저장·선택 로직은 수정하지 않습니다."""
+    if not result:
+        return
+    emotions = [e for e in result.get("emotions", []) if e in COL]
+    if not emotions:
+        return
+    main_color = COL[emotions[0]]
+    second_color = COL[emotions[1]] if len(emotions) > 1 else COL[emotions[0]]
+    tags = "".join(
+        f'<span class="quick-result-tag" style="--tag:{COL[e]}">✦ {html.escape(e)}</span>'
+        for e in emotions
+    )
+    intensity = html.escape(str(result.get("intensity", "보통")))
+    st.markdown(
+        f'<div class="quick-result" style="--star:{main_color};--star2:{second_color}">'
+        '<div class="quick-result-kicker">✦ YOUR EMOTION STAR ✦</div>'
+        '<div class="quick-result-star"></div>'
+        '<div class="quick-result-title">오늘의 별이 탄생했어요!</div>'
+        '<div class="quick-result-copy">오늘의 감정이 나만의 우주에 기록되었어요.</div>'
+        f'<div class="quick-result-tags">{tags}</div>'
+        f'<div class="quick-result-footer">감정의 세기 · {intensity}　|　아래 오늘의 감정 기록에서 다시 만나요</div>'
+        '</div>',
+        unsafe_allow_html=True,
+    )
+
+
 def page_home():
     nick = nick_or_login()
     entries = {e["date"]: e for e in db.load_entries(nick)}
@@ -313,11 +439,12 @@ def page_home():
                 mode = st.segmented_control("기록 방식", ["일기 쓰기", "10초 기록"], default="일기 쓰기",
                                             key="rec_mode", label_visibility="collapsed")
             if mode == "10초 기록":
-                with st.container(key="quick"):
-                    picked = st.pills("지금 마음에 가장 가까운 감정 (최대 2개)", EMO, selection_mode="multi", key="q_pick")
-                    level = st.select_slider("얼마나?", options=list(QUICK_WEIGHT), value="보통", key="q_level")
-                    line = st.text_input("한 줄 (선택)", max_chars=60, key="q_line", placeholder="한 줄만 남겨도 좋아요 (안 써도 돼요)")
-                    if st.button("오늘의 별 만들기 ✨", type="primary", key="q_save"):
+                with st.container(key="quick"):                    
+                    picked = st.pills("지금 마음에 가장 가까운 감정 (최대 2개)", EMO, selection_mode="multi", key="q_pick", on_change=limit_quick_selection)
+                    with st.container(key="intensity_choice"):
+                        level = st.segmented_control("감정의 세기", ["조금", "보통", "많이"], default="보통", selection_mode="single", key="q_level", width="stretch") or "보통"
+                    line = st.text_input("오늘 마음 한 줄 메모 (선택)", max_chars=60, key="q_line", placeholder="지금 마음을 짧게 남겨보세요 ✨ (선택)")
+                    if st.button("오늘의 별 만들기 ✨", type="primary", key="q_save", use_container_width=True):
                         if not picked:
                             st.warning("감정을 하나 이상 골라 주세요.")
                         elif len(picked) > 2:
@@ -327,8 +454,10 @@ def page_home():
                             text = line.strip() or f"10초 기록 · {' + '.join(picked)} ({level})"
                             # 직접 고른 감정이라 '내가 고친 감정'으로도 남겨 둬요 (모델 재학습 데이터)
                             db.save_entry(nick, key, text, p, picked[0], kind="quick")
+                            st.session_state["quick_saved_result"] = {"emotions": list(picked), "intensity": level}
                             st.toast(f"{day.month}월 {day.day}일, {' + '.join(picked)}의 별이 떴어요", icon="✨")
                             st.rerun()
+                    show_quick_result_card(st.session_state.pop("quick_saved_result", None))
             else:
                 text = st.text_area("일기", key="draft_text", height=190, max_chars=500, label_visibility="collapsed",
                                     placeholder="오늘 있었던 일과 그때의 마음을 편하게 적어 보세요.")
