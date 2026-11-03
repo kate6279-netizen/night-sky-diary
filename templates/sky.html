@@ -24,6 +24,8 @@
   #savePoster{position:absolute;right:16px;top:16px;z-index:5;background:rgba(20,26,61,.85);border:1px solid rgba(255,255,255,.35);border-radius:12px;color:#f6f5ff;padding:10px 14px;cursor:pointer;font:700 12px "Gothic A1",sans-serif;box-shadow:0 8px 30px rgba(0,0,0,.2)}
   #savePoster:hover{background:#35366b;border-color:#b9b0ff}
   #savePoster[hidden]{display:none}
+  #savePoster:focus-visible{outline:2px solid #d4caff;outline-offset:3px}
+  @media(max-width:620px){.card{width:calc(100% - 24px);right:12px;top:auto;bottom:54px;max-height:58%;padding:12px;border-radius:13px}.card h3{font-size:16px}.card p{font-size:12px}.hint{left:12px;bottom:10px;font-size:10px;max-width:65%}#savePoster{right:12px;top:12px;padding:10px 11px;font-size:11px}canvas{border-radius:14px}}
 </style></head>
 <body>
 <div id="wrap">
@@ -105,6 +107,15 @@ function draw(){
     hill(H*.86,H*.035,.011,DATA.seed%7,'#0a0f2b'); hill(H*.92,H*.03,.016,DATA.seed%5+2,'#04060f');
     g.fillStyle='#fff'; g.font=`700 ${Math.round(W*.06)}px "Nanum Myeongjo", serif`; g.fillText(DATA.title||'', W*.06, H*.12);
     g.fillStyle='rgba(255,255,255,.7)'; g.font=`300 ${Math.max(12,Math.round(W*.022))}px "Gothic A1", sans-serif`; g.fillText(DATA.subtitle||'', W*.06, H*.12+W*.04);
+    if(DATA.preview){
+      g.save();
+      g.font='700 '+Math.max(15,Math.round(W*.023))+'px "Gothic A1",sans-serif';
+      g.fillStyle='rgba(240,228,255,.73)';
+      g.textAlign='right';
+      g.fillText('DEMO · SAMPLE',W*.94,H*.91);
+      g.textAlign='left';
+      g.restore();
+    }
   }
 }
 
@@ -133,25 +144,39 @@ function hit(ev){
 cv.addEventListener('click', ev => { const i = hit(ev); if (i >= 0 || sel >= 0) showCard(i); });
 cv.addEventListener('mousemove', ev => { cv.style.cursor = hit(ev) >= 0 ? 'pointer' : 'default'; });
 
+let previousWidth=0, previousHeight=0, resizeFrame=0;
 function resize(){
-  W = wrap.clientWidth; H = wrap.clientHeight;
-  cv.width = W * DPR; cv.height = H * DPR;
-  place(); draw(); if (sel >= 0) showCard(sel);
+  const width=Math.max(1,Math.round(wrap.clientWidth)), height=Math.max(1,Math.round(wrap.clientHeight));
+  if(width===previousWidth && height===previousHeight) return;
+  previousWidth=width;previousHeight=height;W=width;H=height;
+  cv.width=Math.round(W*DPR);cv.height=Math.round(H*DPR);
+  place();draw();if(sel>=0) showCard(sel);
+}
+function scheduleResize(){
+  if(resizeFrame) return;
+  resizeFrame=requestAnimationFrame(()=>{resizeFrame=0;resize();});
 }
 const savePosterButton = document.getElementById('savePoster');
 if (DATA.mode === 'poster') {
-  savePosterButton.hidden = false;
+  savePosterButton.hidden = DATA.stars.length === 0;
   savePosterButton.addEventListener('click', () => {
-    const link = document.createElement('a');
-    link.download = 'emotion_trace_constellation_' + DATA.seed + '.png';
-    link.href = cv.toDataURL('image/png');
+    const savedSelection=sel;
+    sel=-1;
+    draw();
+    let dataUrl;
+    try { dataUrl=cv.toDataURL('image/png'); }
+    finally { sel=savedSelection;draw(); }
+    const link=document.createElement('a');
+    const suffix=DATA.preview ? '_DEMO' : '';
+    link.download='emotion_trace_'+DATA.year+'-'+String(DATA.month).padStart(2,'0')+suffix+'.png';
+    link.href=dataUrl;
     document.body.appendChild(link);
     link.click();
     link.remove();
   });
 }
 document.getElementById('hint').textContent = DATA.stars.length ? (DATA.mode === 'poster' ? '별을 누르면 그날의 일기가 열려요' : '감정이 비슷한 날은 가까이 놓이고 선으로 이어져요 · 별을 눌러 보세요') : '아직 뜬 별이 없어요';
-new ResizeObserver(resize).observe(wrap);
-resize();
+new ResizeObserver(scheduleResize).observe(wrap);
+scheduleResize();
 </script>
 </body></html>
