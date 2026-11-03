@@ -247,6 +247,8 @@ header[data-testid="stHeader"] button, header[data-testid="stHeader"] a { pointe
 .weekly-summary small{display:block;color:#a8b1d8;font-size:11px;margin-bottom:6px;}
 .weekly-summary b{color:#f2efff;font-size:18px;font-weight:800;}
 @media(max-width:620px){.weekly-summary{grid-template-columns:1fr;}.weekly-summary>div{padding:10px 14px;display:flex;align-items:center;justify-content:space-between;}.weekly-summary small{margin:0;}}
+/* FRONTEND_HERO_MOBILE_V1: 모바일에서는 3단 히어로 전체가 보이도록 */
+@media(max-width:820px){.st-key-home_hero iframe,.st-key-home_hero [data-testid="stIFrame"]{height:670px!important;min-height:670px!important;}.st-key-home_hero{margin-bottom:8px!important;}}
 /* FRONTEND_HOME_V3: 기록 UX·연결·반응형 */
 .st-key-home_next{margin-top:16px!important;padding:20px!important;border-radius:18px!important;border:1px solid rgba(161,152,255,.26)!important;background:linear-gradient(140deg,rgba(45,46,102,.35),rgba(14,20,46,.45))!important;}
 .st-key-home_next [data-testid="stPageLink"] a,.st-key-home_next a[data-testid="stPageLink-NavLink"]{display:flex!important;align-items:center!important;justify-content:center!important;min-height:51px!important;text-align:center!important;padding:12px!important;border:1px solid rgba(163,155,255,.4)!important;border-radius:13px!important;background:rgba(125,106,230,.17)!important;color:#f1edff!important;font-weight:700!important;}
@@ -446,7 +448,8 @@ def page_home():
 
     q, by = quotes.pick(EMO, probs, day)
     sub = "당신의 감정이 모여 오늘도 특별한 궤적을 만들었어요." if old else "오늘의 감정을 기록하고, 나만의 궤도를 이어가 보세요."
-    components.html(sky.hero_html(f"{day.year}년 {day.month}월 {day.day}일 {WEEK[day.weekday()]}요일", q, by, sub, probs, user=nick), height=320)
+    with st.container(key="home_hero"):
+        components.html(sky.hero_html(f"{day.year}년 {day.month}월 {day.day}일 {WEEK[day.weekday()]}요일", q, by, sub, probs, user=nick), height=320)
     if not old:
         st.markdown('<div style="padding:12px 18px;margin:0 0 16px;border:1px solid rgba(165,155,255,.24);border-radius:14px;background:linear-gradient(110deg,rgba(139,123,255,.13),rgba(91,132,240,.08));color:#dce1ff;font-size:13px">✦ 오늘의 별은 아직 비어 있어요. 아래에서 <b>10초 기록</b> 또는 <b>일기 쓰기</b>를 선택해 첫 별을 만들어 보세요.</div>', unsafe_allow_html=True)
 
