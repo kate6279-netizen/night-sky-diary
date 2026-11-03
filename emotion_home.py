@@ -18,22 +18,21 @@ _HOME_CSS = '''<style>
 
 
 def render_home_extras(entries, today, top_emotion, streak_days, PAGES):
-    """네 가지 탐색 경로만 표시해 사용자 선택을 돕습니다."""
+    """달력·리포트·갤러리로 가는 세 가지 단순한 경로만 표시합니다."""
     st.markdown(_HOME_CSS, unsafe_allow_html=True)
     st.markdown(
-        '<div class="et-nav-head"><b>✦ 나의 우주 둘러보기</b>'
-        '<p>오늘의 기록을 네 가지 방법으로 다시 만날 수 있어요.</p></div>',
+        '<div class="et-nav-head"><b>✦ 기록 돌아보기</b>'
+        '<p>날짜로 보고, 감정 변화를 살피고, 별자리 작품으로 남겨보세요.</p></div>',
         unsafe_allow_html=True,
     )
     choices = (
-        ('calendar', '감정 달력', '어느 날 어떤 감정을 느꼈는지 날짜별로 확인'),
-        ('solar', '감정 태양계', '이번 달 가장 많았던 감정을 행성으로 비교'),
-        ('universe', '감정 유니버스', '마음이 비슷했던 날짜와 기록을 찾아보기'),
-        ('gallery', '별자리 갤러리', '한 달의 별을 하나의 작품으로 감상'),
+        ('calendar', '감정 달력', '언제 어떤 감정을 기록했는지 날짜별로 확인'),
+        ('archive', '나의 감정 리포트', '최근 감정의 변화와 월간 기록을 살펴보기'),
+        ('gallery', '별자리 갤러리', '한 달의 기록을 하나의 별자리 작품으로 감상'),
     )
     with st.container(key='et_explore'):
         # 아래 가로 열은 이 컨테이너 안에 있어야 스타일이 적용됩니다.
-        cols = st.columns(4, gap='small')
+        cols = st.columns(3, gap='small')
         for col, (page_key, label, description) in zip(cols, choices):
             with col:
                 with st.container(border=True):
