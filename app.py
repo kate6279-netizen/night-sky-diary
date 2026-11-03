@@ -14,6 +14,7 @@ import analysis as A
 import db
 import quotes
 import sky
+from emotion_calendar import page_calendar
 from model import EMO, predict
 from samples import SAMPLES
 
@@ -674,6 +675,7 @@ def page_capsule():
 # ---------- 화면 목록 (기본 메뉴는 숨기고 사이드바에 직접 그려요) ----------
 PAGES = {
     "home": st.Page(page_home, title="홈", icon=":material/home:", url_path="home", default=True),
+    "calendar": st.Page(page_calendar, title="감정 달력", icon=":material/calendar_month:", url_path="calendar"),
     "solar": st.Page(page_solar, title="감정 태양계", icon=":material/trip_origin:", url_path="solar"),
     "universe": st.Page(page_universe, title="감정 유니버스", icon=":material/hub:", url_path="universe"),
     "archive": st.Page(page_archive, title="우주의 기록", icon=":material/article:", url_path="archive"),
