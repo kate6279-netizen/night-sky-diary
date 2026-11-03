@@ -556,7 +556,7 @@ def page_archive():
     nick = nick_or_login()
     entries = db.load_entries(nick)
     ym = st.session_state.get("ym") or dt.date.today().strftime("%Y-%m")
-    ym = header("월간 리포트", "지난 한 달, 당신의 감정이 그린 궤적을 돌아보세요", month_options(entries),
+    ym = header("나의 감정 리포트", "기록된 감정의 비율과 변화를 살펴보세요", month_options(entries),
                 small=f"{ym[:4]}년 {int(ym[5:])}월")
     render_explainer("archive")
     y, m = int(ym[:4]), int(ym[5:])
@@ -707,7 +707,7 @@ PAGES = {
     "gallery": st.Page(page_gallery, title="별자리 갤러리", icon=":material/auto_awesome:", url_path="gallery"),
     "solar": st.Page(page_solar, title="감정 태양계", icon=":material/trip_origin:", url_path="solar"),
     "universe": st.Page(page_universe, title="감정 유니버스", icon=":material/hub:", url_path="universe"),
-    "archive": st.Page(page_archive, title="우주의 기록", icon=":material/article:", url_path="archive"),
+    "archive": st.Page(page_archive, title="나의 감정 리포트", icon=":material/insights:", url_path="archive"),
     "capsule": st.Page(page_capsule, title="감정 타임캡슐", icon=":material/mail:", url_path="capsule"),
 }
 nav = st.navigation(list(PAGES.values()), position="hidden")
@@ -718,9 +718,10 @@ with st.sidebar:
     st.markdown(f'<style>.st-key-nav_{current} a {{ background:linear-gradient(135deg,rgba(139,123,255,.3),rgba(90,80,210,.14)) !important;'
                 f' border-color:rgba(165,155,255,.4) !important; }} .st-key-nav_{current} a p {{ color:#fff !important; font-weight:700; }}</style>',
                 unsafe_allow_html=True)
-    for k, p in PAGES.items():
+    # 태양계·유니버스는 기존 링크와 코드를 유지하되 기본 메뉴에서는 숨깁니다.
+    for k in ("home", "calendar", "archive", "gallery", "capsule"):
         with st.container(key=f"nav_{k}"):
-            st.page_link(p)
+            st.page_link(PAGES[k])
     st.markdown('<div class="side-gap"></div>', unsafe_allow_html=True)
     nick = st.session_state.get("nickname", "")
     with st.container(key="side_bottom"):
