@@ -17,6 +17,7 @@ import sky
 from emotion_calendar import page_calendar
 from emotion_gallery import page_gallery
 from emotion_home import render_home_extras
+from emotion_guides import render_home_side, render_explainer
 from model import EMO, predict
 from samples import SAMPLES
 
@@ -436,6 +437,7 @@ def page_home():
         with st.container(border=True, height=350):
             st.markdown('<div class="ctitle">오늘의 감정 비율</div>', unsafe_allow_html=True)
             components.html(sky.donut_html(probs), height=240)
+        render_home_side(probs, EMO, COL, PAGES)
     with c2:
         with st.container(border=True):
             t, m = st.columns([1, 1.3], vertical_alignment="center")
@@ -523,6 +525,7 @@ def page_solar():
     nick = nick_or_login()
     entries = db.load_entries(nick)
     ym = header("감정 태양계", "일곱 개의 감정 행성이 만들어 가는 나만의 우주를 탐험해 보세요", month_options(entries))
+    render_explainer("solar")
     cur = [e for e in entries if e["date"].startswith(ym)]
     components.html(sky.solar_html(cur, f"{ym[:4]}년 {int(ym[5:])}월", height=600), height=610)
 
@@ -538,6 +541,7 @@ def page_universe():
     entries = db.load_entries(nick)
     ym = header("감정 유니버스", "당신의 감정이 만들어 낸 데이터의 별들을 탐험해 보세요. 비슷한 감정을 가진 날들이 서로 연결되어 있어요.",
                 month_options(entries), pill=range_label)
+    render_explainer("universe")
     cur = [e for e in entries if e["date"].startswith(ym)]
     components.html(sky.universe_html(cur, height=640), height=650)
 
@@ -549,6 +553,7 @@ def page_archive():
     ym = st.session_state.get("ym") or dt.date.today().strftime("%Y-%m")
     ym = header("월간 리포트", "지난 한 달, 당신의 감정이 그린 궤적을 돌아보세요", month_options(entries),
                 small=f"{ym[:4]}년 {int(ym[5:])}월")
+    render_explainer("archive")
     y, m = int(ym[:4]), int(ym[5:])
     cur = [e for e in entries if e["date"].startswith(ym)]
     components.html(sky.report_html(cur, y, m, part="top"), height=290)
@@ -596,6 +601,7 @@ def page_capsule():
     entries = db.load_entries(nick)
     today = dt.date.today()
     header("감정 타임캡슐", "7일, 14일, 30일 전의 내가 보낸 편지가 도착해요. 지금의 마음으로 그때의 나에게 답장해 보세요.")
+    render_explainer("capsule")
     allmode = st.session_state.get("cap_all", False)
     letters = capsule_letters(entries, today, everything=allmode)
     fresh_n = len(capsule_letters(entries, today))
