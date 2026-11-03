@@ -359,7 +359,7 @@ def login_card():
                 if st.form_submit_button("시작하기") and name.strip():
                     st.session_state["nickname"] = name.strip()
                     st.rerun()
-            st.markdown('<p class="note" style="text-align:center">이름으로 내 기록을 구분해요.<br>다음에도 같은 이름으로 들어오면 돼요.</p>', unsafe_allow_html=True)
+            st.markdown('<p class="note" style="text-align:center">체험용 서비스예요. 닉네임은 로그인 인증이 아니므로<br>개인정보나 민감한 내용은 입력하지 마세요.</p>', unsafe_allow_html=True)
     st.stop()
 
 
@@ -647,6 +647,7 @@ def page_capsule():
             st.markdown(f'<div class="empty" style="min-height:280px"><div><b>✉</b>아직 도착한 편지가 없어요.<br>'
                         f'오늘 남긴 기록은 7일, 14일, 30일 뒤에 편지가 되어 돌아와요.<br>다음 편지는 <u>{first}</u>에 도착해요.</div></div>',
                         unsafe_allow_html=True)
+            st.page_link(PAGES["home"], label="✦ 오늘의 별 기록하러 가기")
         else:
             def label(x):
                 d = dt.date.fromisoformat(x["date"])
