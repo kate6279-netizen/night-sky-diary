@@ -718,7 +718,12 @@ def page_calendar_route():
         st.session_state["draft_date"] = None
         st.session_state["rec_mode"] = "일기 쓰기"
         st.switch_page(PAGES["home"])
-    page_calendar(on_edit=open_for_editing)
+    def open_today_record():
+        st.session_state.pop("day", None)
+        st.session_state["draft_date"] = None
+        st.session_state["rec_mode"] = "10초 기록"
+        st.switch_page(PAGES["home"])
+    page_calendar(on_edit=open_for_editing, on_create=open_today_record)
 
 
 PAGES = {
