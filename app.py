@@ -231,6 +231,15 @@ header[data-testid="stHeader"] button, header[data-testid="stHeader"] a { pointe
 .st-key-intensity_choice [data-testid="stButtonGroup"] { display:block !important; width:100% !important; max-width:100% !important; }
 .st-key-intensity_choice [data-testid="stButtonGroup"] div:has(> button[data-variant="segmented_control"]) { display:grid !important; grid-template-columns:repeat(3,minmax(0,1fr)) !important; column-gap:10px !important; row-gap:10px !important; align-items:stretch !important; width:100% !important; min-width:0 !important; max-width:100% !important; overflow:visible !important; }
 .st-key-intensity_choice [data-testid="stButtonGroup"] button[data-variant="segmented_control"] { box-sizing:border-box !important; display:flex !important; width:100% !important; min-width:0 !important; max-width:none !important; flex:none !important; margin:0 !important; }
+/* FRONTEND_CAPSULE_V2: 편지와 모바일 UX */
+.letter{box-shadow:0 18px 42px rgba(1,2,15,.22),inset 0 1px 0 rgba(255,230,188,.07);background:radial-gradient(circle at 92% 8%,rgba(255,207,106,.12),transparent 45%),linear-gradient(150deg,rgba(255,240,210,.065),rgba(14,16,40,.94))!important;}
+.letter::after{content:"✉";position:absolute;right:20px;top:13px;color:rgba(255,207,106,.2);font-size:38px;pointer-events:none;}
+.letter .from{font-weight:800;letter-spacing:.09em;}
+.then-now .orb{width:58px;height:58px;box-shadow:0 0 21px var(--c),0 0 0 7px color-mix(in srgb,var(--c) 12%,transparent);}
+.bubble{box-shadow:0 5px 18px rgba(1,2,15,.12);}
+.thread{gap:12px;}
+.kpi{box-shadow:inset 0 1px 0 rgba(255,255,255,.04);}
+@media(max-width:760px){.letter{padding:17px 16px 19px;}.letter .body{font-size:15px;}.bubble{max-width:96%;padding:12px;}.then-now .orb{width:45px;height:45px;}.kpi{padding:12px;}.kpi b{font-size:19px;}}
 /* FRONTEND_HOME_V3: 기록 UX·연결·반응형 */
 .st-key-home_next{margin-top:16px!important;padding:20px!important;border-radius:18px!important;border:1px solid rgba(161,152,255,.26)!important;background:linear-gradient(140deg,rgba(45,46,102,.35),rgba(14,20,46,.45))!important;}
 .st-key-home_next [data-testid="stPageLink"] a,.st-key-home_next a[data-testid="stPageLink-NavLink"]{display:flex!important;align-items:center!important;justify-content:center!important;min-height:51px!important;text-align:center!important;padding:12px!important;border:1px solid rgba(163,155,255,.4)!important;border-radius:13px!important;background:rgba(125,106,230,.17)!important;color:#f1edff!important;font-weight:700!important;}
@@ -602,6 +611,7 @@ def page_archive():
     y, m = int(ym[:4]), int(ym[5:])
     cur = [e for e in entries if e["date"].startswith(ym)]
     components.html(sky.report_html(cur, y, m, part="top"), height=290)
+    st.page_link(PAGES["gallery"], label="✦ 이번 달 별자리 작품 감상하기 →")
     if not cur:
         return
     l, r = st.columns([2, 1], gap="medium")
@@ -666,6 +676,7 @@ def page_capsule():
             st.markdown(f'<div class="empty" style="min-height:280px"><div><b>✉</b>아직 도착한 편지가 없어요.<br>'
                         f'오늘 남긴 기록은 7일, 14일, 30일 뒤에 편지가 되어 돌아와요.<br>다음 편지는 <u>{first}</u>에 도착해요.</div></div>',
                         unsafe_allow_html=True)
+            st.page_link(PAGES["home"], label="오늘의 감정 기록하러 가기 →")
         else:
             def label(x):
                 d = dt.date.fromisoformat(x["date"])
