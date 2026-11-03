@@ -31,6 +31,7 @@ def sample_entries(year, month):
 
 def page_gallery():
     st.markdown('<div class="head"><h1>별자리 갤러리 <small>MY CONSTELLATION</small></h1><p>하루의 마음이 별 하나가 되어 한 달의 그림을 만들어요.</p></div>', unsafe_allow_html=True)
+    st.markdown('<div style="padding:12px 16px;border:1px solid rgba(165,154,255,.24);border-radius:13px;background:linear-gradient(110deg,rgba(125,112,235,.16),rgba(20,26,56,.65));margin:12px 0 18px;color:#d0d5fa;font-size:12.5px;line-height:1.8"><strong style="color:#f5f2ff">작품을 감상하는 방법</strong> · 별 하나는 하루의 감정이고, 별을 이은 선은 기록한 날짜의 흐름이에요. 별을 클릭해 그날의 일기를 보고, 작품 오른쪽 위에서 PNG 이미지로 저장할 수 있어요.</div>', unsafe_allow_html=True)
     nickname = st.session_state.get("nickname", "")
     if not nickname:
         st.info("홈에서 내 우주 이름을 먼저 입력해 주세요.")
@@ -68,8 +69,10 @@ def page_gallery():
         f'<div style="flex:1;min-width:140px;padding:16px;border-radius:14px;background:#171d3c;border:1px solid #33385f"><small>이달의 별</small><div style="font-size:24px;font-weight:800;color:#fff">{len(current)}개</div></div>'
         f'<div style="flex:1;min-width:140px;padding:16px;border-radius:14px;background:#171d3c;border:1px solid #33385f"><small>대표 감정</small><div style="font-size:24px;font-weight:800;color:#fff">{html.escape(dominant)}</div></div>'
         '</div>', unsafe_allow_html=True)
-    components.html(sky.poster_html(current, year, month, height=540), height=552)
+    components.html(sky.poster_html(current, year, month, height=540, preview=preview), height=552, scrolling=False)
     if not current:
         st.info("아직 이번 달 별이 없어요. 감정을 기록하거나 위의 미리보기를 켜보세요.")
+    elif preview:
+        st.caption("미리보기 작품에는 가상 날짜가 포함되어 있고, 저장한 PNG에도 미리보기 표시가 남아요.")
     else:
-        st.caption("별을 클릭하면 날짜별 감정과 메모를 볼 수 있어요.")
+        st.caption("별을 눌러 날짜별 감정을 확인하고, 오른쪽 위 'PNG 저장' 버튼으로 작품을 저장해 보세요.")
