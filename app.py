@@ -336,10 +336,24 @@ def header(title: str, desc: str, months=None, pill=None, small: str = ""):
                     st.session_state["ym"] = months[i - 1]; st.rerun()
             with cal.container(key="calpick"):
                 with st.popover("📅", help="달력에서 날짜를 골라 그 달로 이동"):
-                    picked = st.date_input("이동할 날짜", value=dt.date(int(ym[:4]), int(ym[5:]), 1),
-                                           max_value=dt.date.today(), key=f"cal_{ym}")
-                    if picked.strftime("%Y-%m") != ym:
-                        st.session_state["ym"] = picked.strftime("%Y-%m"); st.rerun()
+                    # 브라우저 DateInput 모듈 로드 오류를 피하면서 기존 월 이동 기능을 유지합니다.
+                    today_month = dt.date.today()
+                    start_year = min(2000, int(ym[:4]))
+                    available_months = [
+                        f"{year:04d}-{month:02d}"
+                        for year in range(today_month.year, start_year - 1, -1)
+                        for month in range(12, 0, -1)
+                        if (year, month) <= (today_month.year, today_month.month)
+                    ]
+                    picked_month = st.selectbox(
+                        "이동할 달", available_months,
+                        index=available_months.index(ym),
+                        format_func=lambda x: f"{x[:4]}년 {int(x[5:])}월",
+                        key=f"month_picker_{ym}",
+                    )
+                    if picked_month != ym:
+                        st.session_state["ym"] = picked_month
+                        st.rerun()
         st.session_state["ym"] = ym
     elif nick:
         right.markdown(f'<div class="user-chip">{html.escape(nick)}님 <i>{html.escape(nick[:1])}</i></div>', unsafe_allow_html=True)
@@ -477,9 +491,26 @@ def page_home():
                 l, r = st.columns([1, 1], vertical_alignment="center")
                 with l.container(key="more"):
                     with st.popover("기록 관리 ⋯", help="날짜 변경, 감정 수정, 기록 삭제"):
-                        new_day = st.date_input("날짜", value=day, max_value=today)
-                        if new_day != day:
-                            st.session_state["day"] = new_day; st.rerun()
+                        # 날짜 입력용 동적 JS 파일 의존 없이 연·월·일을 선택합니다.
+                        st.caption("기록할 날짜 선택")
+                        years = list(range(today.year, min(1900, day.year) - 1, -1))
+                        chosen_year = st.selectbox(
+                            "연도", years, index=years.index(day.year), key=f"edit_year_{key}"
+                        )
+                        chosen_month = st.selectbox(
+                            "월", list(range(1, 13)), index=day.month - 1, key=f"edit_month_{key}"
+                        )
+                        days = list(range(1, calendar.monthrange(chosen_year, chosen_month)[1] + 1))
+                        chosen_day = st.selectbox(
+                            "일", days, index=min(day.day, len(days)) - 1, key=f"edit_day_{key}"
+                        )
+                        new_day = dt.date(chosen_year, chosen_month, chosen_day)
+                        if st.button("선택한 날짜로 이동", key=f"move_day_{key}"):
+                            if new_day > today:
+                                st.warning("미래 날짜에는 기록할 수 없어요.")
+                            elif new_day != day:
+                                st.session_state["day"] = new_day
+                                st.rerun()
                         fix = st.session_state.get("draft_fix")
                         pick = st.radio("내 느낌과 가장 가까운 감정", ["AI 결과 그대로"] + EMO, index=(EMO.index(fix) + 1) if fix in EMO else 0)
                         new_fix = None if pick == "AI 결과 그대로" else pick
