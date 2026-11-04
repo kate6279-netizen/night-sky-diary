@@ -494,16 +494,20 @@ def page_home():
                         # 날짜 입력용 동적 JS 파일 의존 없이 연·월·일을 선택합니다.
                         st.caption("기록할 날짜 선택")
                         years = list(range(today.year, min(1900, day.year) - 1, -1))
-                        chosen_year = st.selectbox(
-                            "연도", years, index=years.index(day.year), key=f"edit_year_{key}"
-                        )
-                        chosen_month = st.selectbox(
-                            "월", list(range(1, 13)), index=day.month - 1, key=f"edit_month_{key}"
-                        )
-                        days = list(range(1, calendar.monthrange(chosen_year, chosen_month)[1] + 1))
-                        chosen_day = st.selectbox(
-                            "일", days, index=min(day.day, len(days)) - 1, key=f"edit_day_{key}"
-                        )
+                        y_col, m_col, d_col = st.columns(3, gap="small")
+                        with y_col:
+                            chosen_year = st.selectbox(
+                                "연도", years, index=years.index(day.year), key=f"edit_year_{key}"
+                            )
+                        with m_col:
+                            chosen_month = st.selectbox(
+                                "월", list(range(1, 13)), index=day.month - 1, key=f"edit_month_{key}"
+                            )
+                        with d_col:
+                            days = list(range(1, calendar.monthrange(chosen_year, chosen_month)[1] + 1))
+                            chosen_day = st.selectbox(
+                                "일", days, index=min(day.day, len(days)) - 1, key=f"edit_day_{key}"
+                            )
                         new_day = dt.date(chosen_year, chosen_month, chosen_day)
                         if st.button("선택한 날짜로 이동", key=f"move_day_{key}"):
                             if new_day > today:
