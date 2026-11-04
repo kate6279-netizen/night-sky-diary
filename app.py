@@ -1,7 +1,7 @@
 """감정의 궤적 (EMOTION TRACE) - Streamlit 메인
 
 실행: streamlit run app.py
-화면: 홈(오늘의 별) / 감정 태양계 / 감정 유니버스 / 우주의 기록(월간 리포트)
+화면: 홈 / 감정 달력 / 별자리 갤러리 / 감정 태양계 / 감정 유니버스 / 나의 감정 리포트 / 감정 타임캡슐
 """
 import calendar
 import datetime as dt
@@ -178,15 +178,6 @@ header[data-testid="stHeader"] button, header[data-testid="stHeader"] a { pointe
 .arc .mix { display:flex; gap:2px; height:5px; margin:8px 0; max-width:260px; }
 .arc .mix i { display:block; border-radius:3px; }
 .arc p { margin:0; font-size:13.5px; line-height:1.7; color:#d6d9f0; }
-/* EMOTION_INTENSITY_V1: 별빛 감정 세기 */
-.st-key-quick [data-testid="stSlider"] { position:relative; margin-top:8px !important; margin-bottom:8px !important; padding:17px 17px 24px !important; border-radius:18px !important; border:1px solid rgba(175,155,255,.32) !important; background:linear-gradient(135deg,rgba(40,44,90,.72),rgba(15,19,45,.92)) !important; box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 10px 26px rgba(5,7,28,.16) !important; }
-.st-key-quick [data-testid="stSlider"]::after { content:"✦ 나의 별빛이 얼마나 강하게 빛나고 있나요?"; display:block; padding-top:9px; color:#b9b2e9; font-size:11px; line-height:1.6; letter-spacing:.01em; pointer-events:none; }
-.st-key-quick [data-testid="stSlider"] label { color:#f0eaff !important; font-weight:700 !important; }
-.st-key-quick [data-testid="stSlider"] [role="slider"] { background:radial-gradient(circle at 30% 25%,#ffffff 0%,#f2d6ff 32%,#a68bff 72%,#7669e8 100%) !important; border:2px solid #f6e7ff !important; box-shadow:0 0 0 4px rgba(180,145,255,.19),0 0 17px rgba(176,143,255,.8) !important; }
-.st-key-quick [data-testid="stSlider"] [role="slider"]:hover { box-shadow:0 0 0 6px rgba(180,145,255,.24),0 0 25px rgba(192,157,255,.9) !important; }
-.st-key-quick [data-testid="stSliderThumbValue"] { color:#f5d6ff !important; font-weight:700 !important; text-shadow:0 0 9px rgba(175,128,255,.3); }
-.st-key-quick [data-testid="stSliderTickBar"] { opacity:1 !important; color:#aeb6d9 !important; font-size:12px !important; }
-@media (prefers-reduced-motion:reduce) { .st-key-quick [data-testid="stSlider"] [role="slider"] { transition:none !important; } }
 /* EMOTION_MEMO_V1: 마음 메모 입력창 */
 .st-key-quick [data-testid="stTextInput"] { margin-top:7px !important; }
 .st-key-quick [data-testid="stTextInput"] label { font-weight:700 !important; color:#f0eaff !important; }
@@ -565,7 +556,6 @@ def page_home():
                  '<span class="streak off">오늘 기록하면 연속 기록이 시작돼요</span>' if today.isoformat() not in entries else
                  '<span class="streak">✦ 오늘의 별이 떴어요</span>')
         st.markdown(f'<div class="ctitle">오늘의 감정 기록{badge}</div><div class="trail">' + "".join(cells) + "</div>", unsafe_allow_html=True)
-        st.page_link(PAGES["calendar"], label="한 달의 감정 달력 보기 →")
 
     render_home_extras(entries, today, top_emotion, streak_days, PAGES)
 
