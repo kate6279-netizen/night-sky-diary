@@ -33,6 +33,21 @@
   .none{font-size:12.5px;color:var(--faint);padding:8px 0}
   .empty{position:absolute;inset:0;display:grid;place-items:center;text-align:center;color:var(--sub);font-size:14px;line-height:1.7}
   @media (max-width:760px){ #app{grid-template-columns:1fr;grid-template-rows:minmax(0,1fr) auto} .side{max-height:260px} }
+
+#stage{isolation:isolate;border:1px solid rgba(164,165,243,.17);border-radius:20px;background:radial-gradient(circle at 50% 54%,rgba(85,77,150,.18),transparent 38%),radial-gradient(ellipse at 16% 80%,rgba(46,79,157,.15),transparent 65%),#0b1029}
+#stage::before{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;border-radius:inherit;box-shadow:inset 0 0 76px rgba(3,6,20,.55)}
+.side{border-radius:20px;border:1px solid rgba(161,165,244,.2);background:linear-gradient(153deg,rgba(35,36,79,.94),rgba(15,19,43,.96) 72%);box-shadow:inset 0 1px 0 rgba(255,255,255,.055)}
+.side h4{font-size:11px;letter-spacing:.13em;text-transform:uppercase;color:#a7aed8;margin-bottom:19px}
+.top{padding:10px 8px 12px;border-radius:16px;background:linear-gradient(132deg,rgba(123,115,210,.12),rgba(16,19,41,.32));border:1px solid rgba(162,148,241,.13)}
+.top span{font-size:26px;letter-spacing:-.04em;color:#f4f2ff}
+.desc{padding:3px 1px;color:#c9cce7;font-size:12.5px}
+.rel{font-size:11px;letter-spacing:.10em;color:#c7baff;font-weight:700}
+.day{border-bottom:1px solid rgba(175,167,242,.11);padding:11px 0;line-height:1.55}
+.day b{color:#dbdcff;font-weight:700}
+.more{border-color:rgba(173,161,248,.35);background:rgba(120,110,220,.08);min-height:39px}
+.more:hover{background:rgba(128,119,240,.20)}
+@media(max-width:760px){#app{height:__HEIGHT__px;grid-template-columns:1fr;grid-template-rows:minmax(0,1fr) 248px;gap:10px}.side{max-height:248px}}
+
 </style></head>
 <body>
 <div id="app">
@@ -102,6 +117,11 @@ function draw(){
   g.setTransform(DPR,0,0,DPR,0,0); g.clearRect(0,0,W,H); if (bg) g.drawImage(bg,0,0,W,H);
   if (!D.total) return;
   const G = geom(), P = planets.map(p => pos(p, G));
+  g.save();g.globalCompositeOperation='screen';
+  P.forEach((p,i)=>{const col=COL[planets[i].k],r=Math.max(64,p.r*5),gr=g.createRadialGradient(p.x,p.y,0,p.x,p.y,r);
+    gr.addColorStop(0,rgba(col,.16));gr.addColorStop(.4,rgba(col,.06));gr.addColorStop(1,rgba(col,0));
+    g.fillStyle=gr;g.beginPath();g.arc(p.x,p.y,r,0,Math.PI*2);g.fill();});
+  g.restore();
   RINGS.forEach(k => { g.strokeStyle = 'rgba(180,180,255,.18)'; g.lineWidth = 1; g.beginPath(); g.ellipse(G.cx,G.cy,G.maxR*k,G.maxR*k*.5,TILT,0,6.283); g.stroke(); });
   planets.forEach((p,i) => { if (!P[i].front) drawOne(p, P[i], G); });
   drawSun(G);
