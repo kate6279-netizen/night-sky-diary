@@ -1,7 +1,7 @@
 """감정의 궤적 (EMOTION TRACE) - Streamlit 메인
 
 실행: streamlit run app.py
-화면: 홈(오늘의 별) / 감정 태양계 / 감정 유니버스 / 우주의 기록(월간 리포트)
+화면: 홈 / 감정 태양계 / 감정 유니버스 / 나의 감정 리포트 / 감정 타임캡슐
 """
 import calendar
 import datetime as dt
@@ -14,9 +14,7 @@ import analysis as A
 import db
 import quotes
 import sky
-from emotion_calendar import page_calendar
 from solar_calendar_picker import render_solar_calendar
-from emotion_gallery import page_gallery, sample_entries as demo_universe_entries
 from emotion_home import render_home_extras
 from emotion_guides import render_home_side, render_explainer
 from model import EMO, predict
@@ -570,7 +568,6 @@ def page_home():
                  '<span class="streak off">오늘 기록하면 연속 기록이 시작돼요</span>' if today.isoformat() not in entries else
                  '<span class="streak">✦ 오늘의 별이 떴어요</span>')
         st.markdown(f'<div class="ctitle">오늘의 감정 기록{badge}</div><div class="trail">' + "".join(cells) + "</div>", unsafe_allow_html=True)
-        st.page_link(PAGES["calendar"], label="한 달의 감정 달력 보기 →")
 
     render_home_extras(entries, today, top_emotion, streak_days, PAGES)
 
@@ -593,6 +590,23 @@ def page_solar():
     render_explainer("solar")
     cur = [e for e in entries if e["date"].startswith(ym)]
     components.html(sky.solar_html(cur, f"{ym[:4]}년 {int(ym[5:])}월", height=600), height=610)
+
+
+def demo_universe_entries(year, month):
+    """저장되지 않는 가상 기록: 유니버스 예시 별지도에만 사용합니다."""
+    samples = ((1, 0), (3, 4), (5, 2), (7, 1), (9, 3), (12, 5),
+               (15, 2), (17, 0), (20, 6), (22, 4), (25, 1), (28, 2))
+    last_day = calendar.monthrange(year, month)[1]
+    out = []
+    for day, index in samples:
+        if day > last_day:
+            continue
+        probabilities = [0.03] * 7
+        probabilities[index] = 0.82
+        out.append({"date": f"{year:04d}-{month:02d}-{day:02d}",
+                    "text": f"예시 감정 기록 · {A.EMO[index]}의 별",
+                    "probs": probabilities, "corrected": None, "kind": "quick"})
+    return out
 
 
 # ---------- 화면 3: 감정 유니버스 ----------
@@ -762,25 +776,8 @@ def page_capsule():
 
 
 # ---------- 화면 목록 (기본 메뉴는 숨기고 사이드바에 직접 그려요) ----------
-def page_calendar_route():
-    """선택한 날짜의 일기로 이동합니다. 저장된 데이터를 직접 바꾸지는 않아요."""
-    def open_for_editing(chosen_date):
-        st.session_state["day"] = chosen_date
-        st.session_state["draft_date"] = None
-        st.session_state["rec_mode"] = "일기 쓰기"
-        st.switch_page(PAGES["home"])
-    def open_today_record():
-        st.session_state.pop("day", None)
-        st.session_state["draft_date"] = None
-        st.session_state["rec_mode"] = "10초 기록"
-        st.switch_page(PAGES["home"])
-    page_calendar(on_edit=open_for_editing, on_create=open_today_record)
-
-
 PAGES = {
     "home": st.Page(page_home, title="홈", icon=":material/home:", url_path="home", default=True),
-    "calendar": st.Page(page_calendar_route, title="감정 달력", icon=":material/calendar_month:", url_path="calendar"),
-    "gallery": st.Page(page_gallery, title="별자리 갤러리", icon=":material/auto_awesome:", url_path="gallery"),
     "solar": st.Page(page_solar, title="감정 태양계", icon=":material/trip_origin:", url_path="solar"),
     "universe": st.Page(page_universe, title="감정 유니버스", icon=":material/hub:", url_path="universe"),
     "archive": st.Page(page_archive, title="나의 감정 리포트", icon=":material/insights:", url_path="archive"),
@@ -794,7 +791,7 @@ with st.sidebar:
     st.markdown(f'<style>.st-key-nav_{current} a {{ background:linear-gradient(135deg,rgba(139,123,255,.3),rgba(90,80,210,.14)) !important;'
                 f' border-color:rgba(165,155,255,.4) !important; }} .st-key-nav_{current} a p {{ color:#fff !important; font-weight:700; }}</style>',
                 unsafe_allow_html=True)
-    # 팀 원본의 태양계·유니버스를 포함해 모든 페이지를 사이드바에 표시합니다.
+    # 팀 합의에 따라 다섯 개 핵심 메뉴만 표시합니다. 태양계 달력은 우측 상단 버튼에 통합합니다.
     for k, p in PAGES.items():
         with st.container(key=f"nav_{k}"):
             st.page_link(p)
