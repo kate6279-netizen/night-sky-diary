@@ -15,6 +15,7 @@ import db
 import quotes
 import sky
 from emotion_calendar import page_calendar
+from solar_calendar_picker import render_solar_calendar
 from emotion_gallery import page_gallery, sample_entries as demo_universe_entries
 from emotion_home import render_home_extras
 from emotion_guides import render_home_side, render_explainer
@@ -311,7 +312,7 @@ def month_options(entries):
     return sorted({e["date"][:7] for e in entries} | {cur}, reverse=True)
 
 
-def header(title: str, desc: str, months=None, pill=None, small: str = ""):
+def header(title: str, desc: str, months=None, pill=None, small: str = "", solar_entries=None, on_solar_date=None):
     """왼쪽: 제목 + 설명 / 오른쪽: 달 이동(‹ 2026년 10월 ›) 또는 사용자 이름"""
     left, right = st.columns([2.4, 1.15], vertical_alignment="center")
     left.markdown(f'<div class="head"><h1>{title}{f"<small>{small}</small>" if small else ""}</h1><p>{desc}</p></div>', unsafe_allow_html=True)
@@ -335,25 +336,29 @@ def header(title: str, desc: str, months=None, pill=None, small: str = ""):
                 if c.button("›", key="m_next", disabled=i == 0, help="다음 달"):
                     st.session_state["ym"] = months[i - 1]; st.rerun()
             with cal.container(key="calpick"):
-                with st.popover("📅", help="달력에서 날짜를 골라 그 달로 이동"):
-                    # 브라우저 DateInput 모듈 로드 오류를 피하면서 기존 월 이동 기능을 유지합니다.
-                    today_month = dt.date.today()
-                    start_year = min(2000, int(ym[:4]))
-                    available_months = [
-                        f"{year:04d}-{month:02d}"
-                        for year in range(today_month.year, start_year - 1, -1)
-                        for month in range(12, 0, -1)
-                        if (year, month) <= (today_month.year, today_month.month)
-                    ]
-                    picked_month = st.selectbox(
-                        "이동할 달", available_months,
-                        index=available_months.index(ym),
-                        format_func=lambda x: f"{x[:4]}년 {int(x[5:])}월",
-                        key=f"month_picker_{ym}",
-                    )
-                    if picked_month != ym:
-                        st.session_state["ym"] = picked_month
-                        st.rerun()
+                with st.popover("📅", help="날짜를 누르면 그날의 감정 기록을 볼 수 있어요" if solar_entries is not None else "달 이동"):
+                    if solar_entries is not None:
+                        # 태양계에서는 이 자리에 원래의 날짜 클릭형 달력을 복구합니다.
+                        render_solar_calendar(ym, solar_entries, on_date_open=on_solar_date)
+                    else:
+                        # 태양계 외 화면의 기존 달 이동 기능은 그대로 유지합니다.
+                        today_month = dt.date.today()
+                        start_year = min(2000, int(ym[:4]))
+                        available_months = [
+                            f"{year:04d}-{month:02d}"
+                            for year in range(today_month.year, start_year - 1, -1)
+                            for month in range(12, 0, -1)
+                            if (year, month) <= (today_month.year, today_month.month)
+                        ]
+                        picked_month = st.selectbox(
+                            "이동할 달", available_months,
+                            index=available_months.index(ym),
+                            format_func=lambda x: f"{x[:4]}년 {int(x[5:])}월",
+                            key=f"month_picker_{ym}",
+                        )
+                        if picked_month != ym:
+                            st.session_state["ym"] = picked_month
+                            st.rerun()
         st.session_state["ym"] = ym
     elif nick:
         right.markdown(f'<div class="user-chip">{html.escape(nick)}님 <i>{html.escape(nick[:1])}</i></div>', unsafe_allow_html=True)
@@ -574,7 +579,17 @@ def page_home():
 def page_solar():
     nick = nick_or_login()
     entries = db.load_entries(nick)
-    ym = header("감정 태양계", "일곱 개의 감정 행성이 만들어 가는 나만의 우주를 탐험해 보세요", month_options(entries))
+
+    def open_solar_date(chosen_date):
+        st.session_state["day"] = chosen_date
+        st.session_state["draft_date"] = None
+        st.session_state["rec_mode"] = "일기 쓰기"
+        st.switch_page(PAGES["home"])
+
+    ym = header(
+        "감정 태양계", "일곱 개의 감정 행성이 만들어 가는 나만의 우주를 탐험해 보세요",
+        month_options(entries), solar_entries=entries, on_solar_date=open_solar_date,
+    )
     render_explainer("solar")
     cur = [e for e in entries if e["date"].startswith(ym)]
     components.html(sky.solar_html(cur, f"{ym[:4]}년 {int(ym[5:])}월", height=600), height=610)
@@ -802,7 +817,7 @@ with st.sidebar:
                     st.session_state["draft_date"] = None
                     st.rerun()
         if nick and st.button("⏻  로그아웃"):
-            for k in ("nickname", "draft_date", "draft_text", "draft_fix", "day", "ym"):
+            for k in ("nickname", "draft_date", "draft_text", "draft_fix", "day", "ym", "solar_selected_date"):
                 st.session_state.pop(k, None)
             st.rerun()
 
