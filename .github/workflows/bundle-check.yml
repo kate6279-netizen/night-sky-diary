@@ -1,0 +1,44 @@
+name: UI Bundle Syntax
+on:
+  push:
+    branches: ["feature/emotiontrace-ui-bundle-20261110"]
+  workflow_dispatch:
+jobs:
+  syntax:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Python syntax and navigation checks
+        run: |
+          python -m compileall -q app.py solar_calendar_picker.py emotion_home.py emotion_visual_theme.py
+          python - <<'PY'
+          from pathlib import Path
+          app=Path("app.py").read_text(encoding="utf-8")
+          assert app.count("st.Page(") == 5
+          assert "render_home_theme()" in app
+          assert "render_capsule_theme()" in app
+          assert "db.save_reply(" in app
+          assert "db.save_entry(" in app
+          assert "from solar_calendar_picker import render_solar_calendar" in app
+          print("Python and five-menu checks passed")
+          PY
+      - name: JavaScript template syntax checks
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re,subprocess
+          for file in ("templates/solar.html","templates/universe.html"):
+              doc=Path(file).read_text(encoding="utf-8")
+              assert "__DATA__" in doc and "__PLANET_JS__" in doc
+              scripts=re.findall(r"<script[^>]*>(.*?)</script>",doc,re.S)
+              assert scripts
+              for i,source in enumerate(scripts):
+                  source=source.replace("__DATA__","{}").replace("__PLANET_JS__","")
+                  dest=Path(f"/tmp/check_{Path(file).stem}_{i}.js")
+                  dest.write_text(source,encoding="utf-8")
+                  subprocess.run(["node","--check",str(dest)],check=True)
+          print("Solar and Universe JS syntax passed")
+          PY
