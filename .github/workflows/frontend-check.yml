@@ -18,13 +18,14 @@ jobs:
           python-version: "3.13"
       - name: Verify Python syntax without starting the model
         run: |
-          python -m compileall -q app.py emotion_calendar.py emotion_gallery.py emotion_guides.py emotion_home.py analysis.py db.py sky.py model.py quotes.py
+          python -m compileall -q app.py solar_calendar_picker.py emotion_calendar.py emotion_gallery.py emotion_guides.py emotion_home.py analysis.py db.py sky.py model.py quotes.py
       - name: Verify frontend module wiring
         run: |
           python - <<'PY'
           from pathlib import Path
           app = Path("app.py").read_text(encoding="utf-8")
           cal = Path("emotion_calendar.py").read_text(encoding="utf-8")
+          solar_picker = Path("solar_calendar_picker.py").read_text(encoding="utf-8")
           gallery = Path("emotion_gallery.py").read_text(encoding="utf-8")
           sky = Path("sky.py").read_text(encoding="utf-8")
           poster = Path("templates/sky.html").read_text(encoding="utf-8")
@@ -35,9 +36,30 @@ jobs:
           assert "def page_calendar" in cal
           assert "on_edit=None, on_create=None" in cal
           assert "st.date_input(" not in app
+          assert "st.date_input(" not in solar_picker
+          assert "from solar_calendar_picker import render_solar_calendar" in app
+          assert "render_solar_calendar(ym, solar_entries, on_date_open=on_solar_date)" in app
+          assert "def render_solar_calendar" in solar_picker
+          assert "solar_cal_day_" in solar_picker
           assert "page_calendar(on_edit=open_for_editing, on_create=open_today_record)" in app
           assert "def page_gallery" in gallery
           assert "def poster_html" in sky
           assert 'id="savePoster"' in poster
           print("Frontend syntax and wiring checks passed")
+          PY
+
+      - name: Test calendar month rollover without installing the AI model
+        run: |
+          python - <<'PY'
+          import ast
+          from pathlib import Path
+          tree = ast.parse(Path("solar_calendar_picker.py").read_text(encoding="utf-8"))
+          function = next(node for node in tree.body if isinstance(node, ast.FunctionDef) and node.name == "shift_month")
+          scope = {}
+          exec(compile(ast.Module(body=[function], type_ignores=[]), "solar_calendar_picker.py", "exec"), scope)
+          shift = scope["shift_month"]
+          assert shift("2026-11", 1) == "2026-12"
+          assert shift("2026-12", 1) == "2027-01"
+          assert shift("2026-01", -1) == "2025-12"
+          print("Calendar month rollover checks passed")
           PY
