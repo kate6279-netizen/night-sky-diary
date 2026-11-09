@@ -1,7 +1,7 @@
 """감정의 궤적 (EMOTION TRACE) - Streamlit 메인
 
 실행: streamlit run app.py
-화면: 홈(오늘의 별) / 감정 태양계 / 감정 유니버스 / 우주의 기록(월간 리포트)
+화면: 홈 / 감정 태양계 / 감정 유니버스 / 나의 감정 리포트 / 감정 타임캡슐
 """
 import calendar
 import datetime as dt
@@ -14,9 +14,9 @@ import analysis as A
 import db
 import quotes
 import sky
-from emotion_calendar import page_calendar
-from emotion_gallery import page_gallery, sample_entries as demo_universe_entries
+from solar_calendar_picker import render_solar_calendar
 from emotion_home import render_home_extras
+from emotion_visual_theme import render_home_theme, render_capsule_theme
 from emotion_guides import render_home_side, render_explainer
 from model import EMO, predict
 from samples import SAMPLES
@@ -311,7 +311,7 @@ def month_options(entries):
     return sorted({e["date"][:7] for e in entries} | {cur}, reverse=True)
 
 
-def header(title: str, desc: str, months=None, pill=None, small: str = ""):
+def header(title: str, desc: str, months=None, pill=None, small: str = "", solar_entries=None, on_solar_date=None):
     """왼쪽: 제목 + 설명 / 오른쪽: 달 이동(‹ 2026년 10월 ›) 또는 사용자 이름"""
     left, right = st.columns([2.4, 1.15], vertical_alignment="center")
     left.markdown(f'<div class="head"><h1>{title}{f"<small>{small}</small>" if small else ""}</h1><p>{desc}</p></div>', unsafe_allow_html=True)
@@ -335,25 +335,29 @@ def header(title: str, desc: str, months=None, pill=None, small: str = ""):
                 if c.button("›", key="m_next", disabled=i == 0, help="다음 달"):
                     st.session_state["ym"] = months[i - 1]; st.rerun()
             with cal.container(key="calpick"):
-                with st.popover("📅", help="달력에서 날짜를 골라 그 달로 이동"):
-                    # 브라우저 DateInput 모듈 로드 오류를 피하면서 기존 월 이동 기능을 유지합니다.
-                    today_month = dt.date.today()
-                    start_year = min(2000, int(ym[:4]))
-                    available_months = [
-                        f"{year:04d}-{month:02d}"
-                        for year in range(today_month.year, start_year - 1, -1)
-                        for month in range(12, 0, -1)
-                        if (year, month) <= (today_month.year, today_month.month)
-                    ]
-                    picked_month = st.selectbox(
-                        "이동할 달", available_months,
-                        index=available_months.index(ym),
-                        format_func=lambda x: f"{x[:4]}년 {int(x[5:])}월",
-                        key=f"month_picker_{ym}",
-                    )
-                    if picked_month != ym:
-                        st.session_state["ym"] = picked_month
-                        st.rerun()
+                with st.popover("📅", help="날짜를 누르면 그날의 감정 기록을 볼 수 있어요" if solar_entries is not None else "달 이동"):
+                    if solar_entries is not None:
+                        # 태양계에서는 이 자리에 원래의 날짜 클릭형 달력을 복구합니다.
+                        render_solar_calendar(ym, solar_entries, on_date_open=on_solar_date)
+                    else:
+                        # 태양계 외 화면의 기존 달 이동 기능은 그대로 유지합니다.
+                        today_month = dt.date.today()
+                        start_year = min(2000, int(ym[:4]))
+                        available_months = [
+                            f"{year:04d}-{month:02d}"
+                            for year in range(today_month.year, start_year - 1, -1)
+                            for month in range(12, 0, -1)
+                            if (year, month) <= (today_month.year, today_month.month)
+                        ]
+                        picked_month = st.selectbox(
+                            "이동할 달", available_months,
+                            index=available_months.index(ym),
+                            format_func=lambda x: f"{x[:4]}년 {int(x[5:])}월",
+                            key=f"month_picker_{ym}",
+                        )
+                        if picked_month != ym:
+                            st.session_state["ym"] = picked_month
+                            st.rerun()
         st.session_state["ym"] = ym
     elif nick:
         right.markdown(f'<div class="user-chip">{html.escape(nick)}님 <i>{html.escape(nick[:1])}</i></div>', unsafe_allow_html=True)
@@ -415,6 +419,7 @@ def show_quick_result_card(result):
 
 def page_home():
     nick = nick_or_login()
+    render_home_theme()
     entries = {e["date"]: e for e in db.load_entries(nick)}
     today = dt.date.today()
 
@@ -565,7 +570,6 @@ def page_home():
                  '<span class="streak off">오늘 기록하면 연속 기록이 시작돼요</span>' if today.isoformat() not in entries else
                  '<span class="streak">✦ 오늘의 별이 떴어요</span>')
         st.markdown(f'<div class="ctitle">오늘의 감정 기록{badge}</div><div class="trail">' + "".join(cells) + "</div>", unsafe_allow_html=True)
-        st.page_link(PAGES["calendar"], label="한 달의 감정 달력 보기 →")
 
     render_home_extras(entries, today, top_emotion, streak_days, PAGES)
 
@@ -574,10 +578,36 @@ def page_home():
 def page_solar():
     nick = nick_or_login()
     entries = db.load_entries(nick)
-    ym = header("감정 태양계", "일곱 개의 감정 행성이 만들어 가는 나만의 우주를 탐험해 보세요", month_options(entries))
-    render_explainer("solar")
+
+    def open_solar_date(chosen_date):
+        st.session_state["day"] = chosen_date
+        st.session_state["draft_date"] = None
+        st.session_state["rec_mode"] = "일기 쓰기"
+        st.switch_page(PAGES["home"])
+
+    ym = header(
+        "감정 태양계", "일곱 개의 감정 행성이 만들어 가는 나만의 우주를 탐험해 보세요",
+        month_options(entries), solar_entries=entries, on_solar_date=open_solar_date,
+    )
     cur = [e for e in entries if e["date"].startswith(ym)]
     components.html(sky.solar_html(cur, f"{ym[:4]}년 {int(ym[5:])}월", height=600), height=610)
+
+
+def demo_universe_entries(year, month):
+    """저장되지 않는 가상 기록: 유니버스 예시 별지도에만 사용합니다."""
+    samples = ((1, 0), (3, 4), (5, 2), (7, 1), (9, 3), (12, 5),
+               (15, 2), (17, 0), (20, 6), (22, 4), (25, 1), (28, 2))
+    last_day = calendar.monthrange(year, month)[1]
+    out = []
+    for day, index in samples:
+        if day > last_day:
+            continue
+        probabilities = [0.03] * 7
+        probabilities[index] = 0.82
+        out.append({"date": f"{year:04d}-{month:02d}-{day:02d}",
+                    "text": f"예시 감정 기록 · {A.EMO[index]}의 별",
+                    "probs": probabilities, "corrected": None, "kind": "quick"})
+    return out
 
 
 # ---------- 화면 3: 감정 유니버스 ----------
@@ -658,10 +688,10 @@ def page_archive():
 # ---------- 화면 5: 감정 타임캡슐 ----------
 def page_capsule():
     nick = nick_or_login()
+    render_capsule_theme()
     entries = db.load_entries(nick)
     today = dt.date.today()
     header("감정 타임캡슐", "7일, 14일, 30일 전의 내가 보낸 편지가 도착해요. 지금의 마음으로 그때의 나에게 답장해 보세요.")
-    render_explainer("capsule")
     allmode = st.session_state.get("cap_all", False)
     letters = capsule_letters(entries, today, everything=allmode)
     fresh_n = len(capsule_letters(entries, today))
@@ -676,7 +706,7 @@ def page_capsule():
 
     t1, t2 = st.tabs([f"도착한 편지 {fresh_n}", f"주고받은 편지 {len(replied)}"])
     with t1:
-        st.toggle("지난 기록 모두 보기 (7일이 지난 모든 기록에 답장할 수 있어요)", key="cap_all")
+        st.toggle("지난 편지 더 보기", key="cap_all")
         if not letters:
             first = f"{nxt.month}월 {nxt.day}일" if nxt else "7일 뒤"
             st.markdown(f'<div class="empty" style="min-height:280px"><div><b>✉</b>아직 도착한 편지가 없어요.<br>'
@@ -703,7 +733,6 @@ def page_capsule():
                 st.markdown('<div style="height:14px"></div>', unsafe_allow_html=True)
                 reply = st.text_area("지금의 내가 그때의 나에게", key=f"reply_{x['date']}", height=130, max_chars=500,
                                      placeholder="그때의 나에게 하고 싶은 말을 적어 보세요.")
-                st.caption("이렇게 시작해도 좋아요 · “그때 걱정했던 일은…” · “지금의 나는…” · “그때의 나에게 고마운 건…”")
                 if st.button("답장 보내기 ✉", type="primary", key=f"send_{x['date']}"):
                     if not reply.strip():
                         st.warning("답장을 먼저 적어 주세요.")
@@ -747,25 +776,8 @@ def page_capsule():
 
 
 # ---------- 화면 목록 (기본 메뉴는 숨기고 사이드바에 직접 그려요) ----------
-def page_calendar_route():
-    """선택한 날짜의 일기로 이동합니다. 저장된 데이터를 직접 바꾸지는 않아요."""
-    def open_for_editing(chosen_date):
-        st.session_state["day"] = chosen_date
-        st.session_state["draft_date"] = None
-        st.session_state["rec_mode"] = "일기 쓰기"
-        st.switch_page(PAGES["home"])
-    def open_today_record():
-        st.session_state.pop("day", None)
-        st.session_state["draft_date"] = None
-        st.session_state["rec_mode"] = "10초 기록"
-        st.switch_page(PAGES["home"])
-    page_calendar(on_edit=open_for_editing, on_create=open_today_record)
-
-
 PAGES = {
     "home": st.Page(page_home, title="홈", icon=":material/home:", url_path="home", default=True),
-    "calendar": st.Page(page_calendar_route, title="감정 달력", icon=":material/calendar_month:", url_path="calendar"),
-    "gallery": st.Page(page_gallery, title="별자리 갤러리", icon=":material/auto_awesome:", url_path="gallery"),
     "solar": st.Page(page_solar, title="감정 태양계", icon=":material/trip_origin:", url_path="solar"),
     "universe": st.Page(page_universe, title="감정 유니버스", icon=":material/hub:", url_path="universe"),
     "archive": st.Page(page_archive, title="나의 감정 리포트", icon=":material/insights:", url_path="archive"),
@@ -779,7 +791,7 @@ with st.sidebar:
     st.markdown(f'<style>.st-key-nav_{current} a {{ background:linear-gradient(135deg,rgba(139,123,255,.3),rgba(90,80,210,.14)) !important;'
                 f' border-color:rgba(165,155,255,.4) !important; }} .st-key-nav_{current} a p {{ color:#fff !important; font-weight:700; }}</style>',
                 unsafe_allow_html=True)
-    # 팀 원본의 태양계·유니버스를 포함해 모든 페이지를 사이드바에 표시합니다.
+    # 팀 합의에 따라 다섯 개 핵심 메뉴만 표시합니다. 태양계 달력은 우측 상단 버튼에 통합합니다.
     for k, p in PAGES.items():
         with st.container(key=f"nav_{k}"):
             st.page_link(p)
@@ -802,7 +814,7 @@ with st.sidebar:
                     st.session_state["draft_date"] = None
                     st.rerun()
         if nick and st.button("⏻  로그아웃"):
-            for k in ("nickname", "draft_date", "draft_text", "draft_fix", "day", "ym"):
+            for k in ("nickname", "draft_date", "draft_text", "draft_fix", "day", "ym", "solar_selected_date"):
                 st.session_state.pop(k, None)
             st.rerun()
 
