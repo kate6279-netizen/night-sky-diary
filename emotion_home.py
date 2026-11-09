@@ -18,17 +18,17 @@ _HOME_CSS = '''<style>
 
 
 def render_home_extras(entries, today, top_emotion, streak_days, PAGES):
-    """달력·리포트·갤러리로 가는 세 가지 단순한 경로만 표시합니다."""
+    """합의된 핵심 화면(태양계·유니버스·리포트)으로 안내합니다."""
     st.markdown(_HOME_CSS, unsafe_allow_html=True)
     st.markdown(
         '<div class="et-nav-head"><b>✦ 기록 돌아보기</b>'
-        '<p>날짜로 보고, 감정 변화를 살피고, 별자리 작품으로 남겨보세요.</p></div>',
+        '<p>감정 행성에서 날짜를 찾고, 별자리에서 마음의 연결을 발견해 보세요.</p></div>',
         unsafe_allow_html=True,
     )
     choices = (
-        ('calendar', '감정 달력', '언제 어떤 감정을 기록했는지 날짜별로 확인'),
+        ('solar', '감정 태양계', '감정 행성을 살펴보고 📅 버튼에서 날짜별 기록 확인'),
+        ('universe', '감정 유니버스', '닮은 감정의 별을 연결하며 나만의 우주 탐험'),
         ('archive', '나의 감정 리포트', '최근 감정의 변화와 월간 기록을 살펴보기'),
-        ('gallery', '별자리 갤러리', '한 달의 기록을 하나의 별자리 작품으로 감상'),
     )
     with st.container(key='et_explore'):
         # 아래 가로 열은 이 컨테이너 안에 있어야 스타일이 적용됩니다.
